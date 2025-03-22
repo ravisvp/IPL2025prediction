@@ -1,0 +1,491 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+/* Basic Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* Ensure html & body occupy full screen height */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+/* Apply Google Font and full-screen background */
+body {
+  font-family: 'Roboto', sans-serif;
+  background: url("images/stadium_bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: #333;
+  line-height: 1.6;
+}
+/* Hero / Header Section */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 30px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 1;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+.hero-content p {
+  font-size: 1.2rem;
+}
+/* Main Container */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 10px;
+}
+/* Fade In Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in {
+  animation: fadeIn 1s ease-in;
+}
+/* Buttons */
+button, .action-btn {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px 0;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+button:hover, .action-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+table th, table td {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
+table th {
+  background-color: #333;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+table tbody tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+table tbody tr:hover {
+  background-color: #eaeaea;
+  transition: background-color 0.3s ease;
+}
+/* Scoreboard Styling for Expert Predictions */
+.scoreboard-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 40px auto;
+  text-align: center;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.scoreboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #4b0082;
+  padding: 10px 20px;
+}
+.scoreboard-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #fff;
+}
+.scoreboard-subtitle {
+  font-size: 1rem;
+  color: #fff;
+}
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.scoreboard-table thead {
+  background-color: #4b0082;
+}
+.scoreboard-table th {
+  color: #fff;
+  padding: 12px;
+  border: none;
+  font-size: 1rem;
+}
+.scoreboard-table td {
+  padding: 12px;
+  border: none;
+  font-size: 1rem;
+  color: #fff;
+}
+.scoreboard-table tbody tr:nth-child(odd) {
+  background-color: #5c0099;
+}
+.scoreboard-table tbody tr:nth-child(even) {
+  background-color: #6a0dad;
+}
+/* Team Box Styling for Prediction Form */
+.team-box {
+  display: inline-block;
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+.team-box:hover {
+  transform: scale(1.05);
+}
+.team-box.selected {
+  border: 4px solid #fff;
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8);
+}
+/* Game Label Styling */
+.game-label {
+  display: inline-block;
+  background-color: #4b0082;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+/* Additional styling for .selected-team */
+.selected-team {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #333;
+}
+/* Input Field for Name */
+#name {
+  width: 33%;
+  font-size: 1rem;
+  padding: 8px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+}
+/* Ticker/Acknowledgment Section */
+.ticker {
+  background-color: #4b0082;
+  color: #fff;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: center;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+.ticker .ticker-message {
+  margin-bottom: 10px;
+}
+.ticker .action-btn {
+  margin-top: 10px;
+  font-size: 1rem;
+}
+/* Violet Headings & Labels for Prediction Form */
+.violet-heading {
+  display: inline-block;
+  background-color: #4b0082;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+.violet-heading-sub {
+  display: inline-block;
+  background-color: #4b0082;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin: 15px 0 10px 0;
+}
+.violet-label {
+  display: inline-block;
+  background-color: #4b0082;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+/* New Header Classes for Finals Prediction Table */
+.violet-header {
+  background-color: #4b0082;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px;
+  text-align: center;
+}
+.rank-header {
+  background-color: #FFA07A;
+  color: #000;
+  font-weight: bold;
+  padding: 8px;
+}
+.finalist-header {
+  background-color: #FFA07A;
+  color: #000;
+  font-weight: bold;
+  padding: 8px;
+}
+.winner-header {
+  background-color: #FFA07A;
+  color: #000;
+  font-weight: bold;
+  padding: 8px;
+}
+.cap-header {
+  background-color: #FFA07A;
+  color: #000;
+  font-weight: bold;
+  padding: 8px;
+}
+/* Finals Prediction Table */
+#finalsPredictionTable {
+  table-layout: fixed;
+  width: 100%;
+}
+#finalsPredictionTable th,
+#finalsPredictionTable td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ✅ Freeze First Column Styling */
+#finalsPredictionTable th:first-child,
+#finalsPredictionTable td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: #ffffff; /* Matches table background */
+  color: #000;
+  min-width: 150px; /* Optional: adjust width */
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+#finalsPredictionTable th:first-child {
+  background-color: #333; /* Dark header */
+  color: #fff;
+  z-index: 3;
+}
+/* Desktop Column Widths */
+#finalsPredictionTable th:nth-child(1),
+#finalsPredictionTable td:nth-child(1) {
+  width: 20%;
+}
+#finalsPredictionTable th:nth-child(2),
+#finalsPredictionTable td:nth-child(2),
+#finalsPredictionTable th:nth-child(3),
+#finalsPredictionTable td:nth-child(3),
+#finalsPredictionTable th:nth-child(4),
+#finalsPredictionTable td:nth-child(4),
+#finalsPredictionTable th:nth-child(5),
+#finalsPredictionTable td:nth-child(5) {
+  width: 8%;
+}
+#finalsPredictionTable th:nth-child(6),
+#finalsPredictionTable td:nth-child(6),
+#finalsPredictionTable th:nth-child(7),
+#finalsPredictionTable td:nth-child(7),
+#finalsPredictionTable th:nth-child(8),
+#finalsPredictionTable td:nth-child(8) {
+  width: 8%;
+}
+#finalsPredictionTable th:nth-child(9),
+#finalsPredictionTable td:nth-child(9),
+#finalsPredictionTable th:nth-child(10),
+#finalsPredictionTable td:nth-child(10) {
+  width: 12%;
+}
+/* Table Scroll Wrapper */
+.table-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+/* Rank Sections in Prediction Form */
+.rank-section {
+  margin-bottom: 15px;
+}
+.rank-header {
+  width: 100%;
+  background-color: #4b0082;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 5px;
+}
+.rank-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.rank-container .team-box {
+  flex: 0 0 calc(20% - 10px);
+  margin: 5px;
+}
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  table th, table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+  #predictionRecordDiv, #leaderboardTable, #finalsPredictionTable {
+    display: block;
+    overflow-x: auto;
+  }
+  #name {
+    width: 100%;
+  }
+  .violet-heading, .violet-heading-sub {
+    display: block;
+    text-align: center;
+  }
+  .rank-container {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .rank-container .team-box {
+    flex: 0 0 calc(20% - 10px);
+    margin: 5px;
+  }
+  .rank-section {
+    margin-bottom: 15px;
+  }
+  .rank-header {
+    width: 100%;
+    background-color: #4b0082;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+  #finalsPredictionTable {
+    table-layout: auto !important;
+    width: auto !important;
+  }
+  #finalsPredictionTable th, #finalsPredictionTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #finalsPredictionTable th:nth-child(9),
+  #finalsPredictionTable td:nth-child(9),
+  #finalsPredictionTable th:nth-child(10),
+  #finalsPredictionTable td:nth-child(10) {
+    white-space: normal !important;
+    min-width: 80px;
+  }
+}
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  .team-box {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  .ticker {
+    font-size: 1.1rem;
+  }
+  #finalsPredictionTable th, 
+  #finalsPredictionTable td {
+    padding: 4px;
+    font-size: 10px;
+  }
+}
+/* Rules Table */
+.rules-section {
+  margin-bottom: 20px;
+}
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.rules-table caption {
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 10px;
+  background-color: #4b0082;
+  color: #fff;
+}
+.rules-table td {
+  padding: 10px;
+  border: 1px solid #4b0082;
+  background-color: #e0d4f5;
+  color: #333;
+  font-weight: bold;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,838 @@
+(function(){
+  // ----- Data and Utility Functions -----
+  const gamesList = [
+    "RCB vs KKR",
+    "RR vs SRH",
+    "MI vs CSK",
+    "LSG vs DC",
+    "PBKS vs GT",
+    "KKR vs RR",
+    "LSG vs SRH",
+    "RCB vs CSK",
+    "MI vs GT",
+    "SRH vs DC",
+    "CSK vs RR",
+    "KKR vs MI",
+    "PBKS vs LSG",
+    "GT vs RCB",
+    "SRH vs KKR",
+    "MI vs LSG",
+    "DC vs CSK",
+    "RR vs PBKS",
+    "LSG vs KKR",
+    "GT vs SRH",
+    "RCB vs MI",
+    "PBKS vs CSK",
+    "RR vs GT",
+    "DC vs RCB",
+    "KKR vs CSK",
+    "GT vs LSG",
+    "PBKS vs SRH",
+    "RCB vs RR",
+    "MI vs DC",
+    "CSK vs LSG",
+    "KKR vs PBKS",
+    "RR vs DC",
+    "SRH vs MI",
+    "PBKS vs RCB",
+    "DC vs GT",
+    "LSG vs RR",
+    "RCB vs PBKS",
+    "CSK vs MI",
+    "GT vs KKR",
+    "DC vs LSG",
+    "MI vs SRH",
+    "RR vs RCB",
+    "SRH vs CSK",
+    "PBKS vs KKR",
+    "LSG vs MI",
+    "RCB vs DC",
+    "GT vs RR",
+    "KKR vs DC",
+    "PBKS vs CSK",
+    "MI vs RR",
+    "SRH vs GT",
+    "CSK vs RCB",
+    "RR vs KKR",
+    "LSG vs PBKS",
+    "DC vs SRH",
+    "GT vs MI",
+    "CSK vs KKR",
+    "DC vs PBKS",
+    "RCB vs LSG",
+    "KKR vs SRH",
+    "MI vs PBKS",
+    "GT vs DC",
+    "RR vs CSK",
+    "SRH vs RCB",
+    "LSG vs GT",
+    "DC vs MI",
+    "PBKS vs RR",
+    "KKR vs RCB",
+    "CSK vs GT",
+    "SRH vs LSG"
+  ];
+  const numGames = gamesList.length;
+  const teamsList = ["RCB", "KKR", "MI", "CSK", "RR", "SRH", "LSG", "DC", "PBKS", "GT"];
+  const teamColors = {
+    RCB: "#00509E",
+    KKR: "#6A0DAD",
+    MI: "#003399",
+    CSK: "#FFC107",
+    RR: "#E91E63",
+    SRH: "#FF5722",
+    LSG: "#0B3D91",
+    DC: "#B71C1C",
+    PBKS: "#8E244D",
+    GT: "#FF6F00"
+  };
+  // Uniform styling for name cells in display tables
+  const nameCellBgColor = "#e0d4f5"; // light violet
+  const nameCellTextColor = "#000";
+  function getRankColor(index) {
+    if (index === 0) return "#FFD700"; // Gold
+    if (index === 1) return "#C0C0C0"; // Silver
+    if (index === 2) return "#CD7F32"; // Bronze
+    return "#D3D3D3"; // Light Gray
+  }
+  window.getRankColor = getRankColor;
+  // ----- Prediction Form Variables -----
+  let selectedGamePredictions = new Array(gamesList.length).fill(null);
+  // For playoff selections by rank, use an array of 4 items.
+  let selectedSemifinalists = [null, null, null, null];
+  let selectedFinalists = [];
+  let selectedWinner = "";
+  // ----- Prediction Form Functions -----
+  function populateGamePredictions() {
+    const container = document.getElementById("gamePredictionsContainer");
+    container.innerHTML = "";
+    gamesList.forEach((game, index) => {
+      const gameContainer = document.createElement("div");
+      gameContainer.className = "game-container";
+      const label = document.createElement("span");
+      label.className = "game-label";
+      label.innerText = `Game ${index + 1} (${game}):`;
+      gameContainer.appendChild(label);
+      const teams = game.split(" vs ");
+      teams.forEach(team => {
+        const trimmedTeam = team.trim();
+        const box = document.createElement("div");
+        box.className = "team-box";
+        box.innerText = trimmedTeam;
+        box.style.backgroundColor = teamColors[trimmedTeam] || "#2f2f2f";
+        box.onclick = function() {
+          selectedGamePredictions[index] = trimmedTeam;
+          const siblings = gameContainer.querySelectorAll(".team-box");
+          siblings.forEach(sib => sib.classList.remove("selected"));
+          box.classList.add("selected");
+          updateGameSelectionDisplay(gameContainer, trimmedTeam);
+        };
+        gameContainer.appendChild(box);
+      });
+      const displaySpan = document.createElement("span");
+      displaySpan.className = "selected-team";
+      displaySpan.innerText = selectedGamePredictions[index] ? selectedGamePredictions[index] : "";
+      gameContainer.appendChild(displaySpan);
+      container.appendChild(gameContainer);
+    });
+  }
+  function updateGameSelectionDisplay(gameContainer, team) {
+    const displaySpan = gameContainer.querySelector(".selected-team");
+    if (displaySpan) displaySpan.innerText = team;
+  }
+  // New function: populate a selection for a playoff rank.
+  function populateRankSelect(rankIndex, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ""; // Clear previous content
+    teamsList.forEach(team => {
+      const box = document.createElement("div");
+      box.className = "team-box";
+      box.innerText = team;
+      box.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      box.onclick = function() {
+        // Check if the team is already selected in another rank.
+        for (let i = 0; i < selectedSemifinalists.length; i++){
+          if (i !== rankIndex && selectedSemifinalists[i] === team) {
+            alert(`${team} is already selected for another rank. Please choose another team.`);
+            return;
+          }
+        }
+        selectedSemifinalists[rankIndex] = team;
+        // Remove selected class from all boxes in this container.
+        const boxes = container.querySelectorAll(".team-box");
+        boxes.forEach(b => b.classList.remove("selected"));
+        box.classList.add("selected");
+      };
+      container.appendChild(box);
+    });
+  }
+  
+  function populateMultiSelect(containerId, selectionArray, maxSelection) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    teamsList.forEach(team => {
+      const box = document.createElement("div");
+      box.className = "team-box";
+      box.innerText = team;
+      box.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      box.onclick = function() {
+        const idx = selectionArray.indexOf(team);
+        if (idx >= 0) {
+          selectionArray.splice(idx, 1);
+          box.classList.remove("selected");
+        } else {
+          if (selectionArray.length < maxSelection) {
+            selectionArray.push(team);
+            box.classList.add("selected");
+          } else {
+            alert(`Please select exactly ${maxSelection} teams.`);
+          }
+        }
+      };
+      container.appendChild(box);
+    });
+  }
+  function populateSingleSelect(containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    teamsList.forEach(team => {
+      const box = document.createElement("div");
+      box.className = "team-box";
+      box.innerText = team;
+      box.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      box.onclick = function() {
+        const boxes = container.querySelectorAll(".team-box");
+        boxes.forEach(b => b.classList.remove("selected"));
+        box.classList.add("selected");
+        selectedWinner = team;
+      };
+      container.appendChild(box);
+    });
+  }
+  
+  function initPredictionForm(){
+    selectedGamePredictions = new Array(gamesList.length).fill(null);
+    selectedSemifinalists = [null, null, null, null];
+    selectedFinalists = [];
+    selectedWinner = "";
+    populateGamePredictions();
+    // Populate 4 separate playoff rank selections:
+    populateRankSelect(0, "rank1Container");
+    populateRankSelect(1, "rank2Container");
+    populateRankSelect(2, "rank3Container");
+    populateRankSelect(3, "rank4Container");
+    // Finalists and winner remain unchanged:
+    populateMultiSelect("finalistContainer", selectedFinalists, 2);
+    populateSingleSelect("winnerContainer");
+  }
+  
+  function submitUserPrediction(){
+    const name = document.getElementById("name").value;
+    if (!name) {
+      alert("Please enter your name or nickname.");
+      return;
+    }
+    for (let i = 0; i < selectedGamePredictions.length; i++){
+      if (!selectedGamePredictions[i]){
+        alert(`Please make a selection for game ${i+1}.`);
+        return;
+      }
+    }
+    if (selectedSemifinalists.some(rank => !rank)) {
+      alert("Please select a team for each playoff rank (Rank 1, Rank 2, Rank 3, Rank 4).");
+      return;
+    }
+    if (selectedFinalists.length !== 2) {
+      alert("Please select exactly 2 finalists.");
+      return;
+    }
+    if (!selectedWinner) {
+      alert("Please select a winner.");
+      return;
+    }
+    
+    // New fields: Purple Cap and Orange Cap (moved after winner)
+    const purpleCap = document.getElementById("purple_cap").value;
+    const orangeCap = document.getElementById("orange_cap").value;
+    if (!purpleCap) {
+      alert("Please enter the Purple Cap Winner.");
+      return;
+    }
+    if (!orangeCap) {
+      alert("Please enter the Orange Cap Winner.");
+      return;
+    }
+    
+    const data = {
+      name: name,
+      predictions: selectedGamePredictions,
+      semifinalists: selectedSemifinalists,
+      finalists: selectedFinalists,
+      winner: selectedWinner,
+      purple_cap: purpleCap,
+      orange_cap: orangeCap
+    };
+    console.log("Submitting prediction:", data);
+    fetch("/submit_prediction", {
+      method:"POST",
+      headers:{"Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    }).then(response => {
+      if (!response.ok) throw new Error("Network response not ok");
+      return response.json();
+    }).then(result => {
+      alert(result.message);
+      document.getElementById("userPredictionForm").style.display = "none";
+      document.getElementById("enterPredictionTitle").style.display = "none";
+      document.getElementById("acknowledgment").style.display = "block";
+      displayFinalsPredictions();
+      displayLeaderboard();
+      displayPredictions();
+    }).catch(error => {
+      console.error("Error submitting prediction:", error);
+      alert("Error submitting prediction. Check console for details.");
+    });
+  }
+  
+  // ----- Navigation and Display Functions -----
+  function showExpertTab(){
+    document.getElementById("scoreboardContainer").style.display = "block";
+    document.getElementById("allPredictionsContainer").style.display = "none";
+    document.getElementById("tab-expert").classList.add("active");
+    document.getElementById("tab-all").classList.remove("active");
+    displayLeaderboard();
+  }
+  function showAllPredictionsTab(){
+    document.getElementById("scoreboardContainer").style.display = "none";
+    document.getElementById("allPredictionsContainer").style.display = "block";
+    document.getElementById("tab-all").classList.add("active");
+    document.getElementById("tab-expert").classList.remove("active");
+    displayPredictions();
+  }
+  function showPredictionForm(){
+    console.log("showPredictionForm called");
+    document.getElementById("main-view").style.display = "none";
+    document.getElementById("prediction-form").style.display = "block";
+    initPredictionForm();
+  }
+  function showMainView(){
+    document.getElementById("prediction-form").style.display = "none";
+    document.getElementById("acknowledgment").style.display = "none";
+    document.getElementById("main-view").style.display = "block";
+    displayLeaderboard();
+    displayPredictions();
+    displayFinalsPredictions();
+  }
+  
+  function displayLeaderboard() {
+    const tableBody = document.getElementById("leaderboardTable").getElementsByTagName("tbody")[0];
+    tableBody.innerHTML = "";
+  
+    Promise.all([
+      fetch("/leaderboard").then(r => {
+        if (!r.ok) throw new Error("Failed to fetch leaderboard data");
+        return r.json();
+      }),
+      fetch("/actual_results").then(r => r.json())
+    ]).then(([leaderboard, actualData]) => {
+      let gamesCompleted = 0;
+      if (actualData && actualData.actualResults) {
+        gamesCompleted = actualData.actualResults.length;
+      }
+  
+      if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
+      } else {
+        leaderboard.forEach((entry, idx) => {
+          const row = document.createElement("tr");
+  
+          // Add ranking number next to user name
+          const rankNumber = idx + 1;
+          const displayName = entry.name ? entry.name : "User";
+          const nameCell = document.createElement("td");
+          nameCell.textContent = `${rankNumber}. ${displayName}`;
+          nameCell.style.backgroundColor = nameCellBgColor;
+          nameCell.style.color = nameCellTextColor;
+          nameCell.style.fontWeight = "bold";
+          nameCell.style.whiteSpace = "nowrap";
+          row.appendChild(nameCell);
+  
+          const pointsCell = document.createElement("td");
+          pointsCell.textContent = entry.total_points !== undefined ? entry.total_points : 0;
+          pointsCell.style.backgroundColor = (!isNaN(entry.total_points) && entry.total_points > 0) ? "#008000" : "#2f2f2f";
+          pointsCell.style.color = "#fff";
+          row.appendChild(pointsCell);
+  
+          const hitsCell = document.createElement("td");
+          hitsCell.textContent = entry.total_hits !== undefined ? entry.total_hits : 0;
+          hitsCell.style.backgroundColor = (!isNaN(entry.total_hits) && entry.total_hits > 0) ? "#008000" : "#2f2f2f";
+          hitsCell.style.color = "#fff";
+          row.appendChild(hitsCell);
+  
+          const missesCell = document.createElement("td");
+          missesCell.textContent = entry.total_misses !== undefined ? entry.total_misses : 0;
+          missesCell.style.backgroundColor = (!isNaN(entry.total_misses) && entry.total_misses > 0) ? "#B22222" : "#2f2f2f";
+          missesCell.style.color = "#fff";
+          row.appendChild(missesCell);
+  
+          const gamesCompletedCell = document.createElement("td");
+          gamesCompletedCell.textContent = gamesCompleted;
+          gamesCompletedCell.style.backgroundColor = "#2f2f2f";
+          gamesCompletedCell.style.color = "#fff";
+          row.appendChild(gamesCompletedCell);
+  
+          tableBody.appendChild(row);
+        });
+      }
+    }).catch(error => {
+      console.error("Error fetching leaderboard or actual results:", error);
+      tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
+    });
+  }
+  
+  
+  // ----- Detailed Predictions Display -----
+  function generateDetailedPredictionTableHeader(){
+    const header = document.getElementById("predictionTableHeader");
+    header.innerHTML = "";
+    const row = document.createElement("tr");
+    let th = document.createElement("th");
+    th.innerText = "Name";
+    row.appendChild(th);
+    gamesList.forEach(game=>{
+      th = document.createElement("th");
+      th.innerText = game;
+      row.appendChild(th);
+    });
+    for (let i = 1; i <= 4; i++){
+      th = document.createElement("th");
+      th.innerText = `Rank ${i}`;
+      row.appendChild(th);
+    }
+    for (let i = 1; i <= 2; i++){
+      th = document.createElement("th");
+      th.innerText = `Final ${i}`;
+      row.appendChild(th);
+    }
+    th = document.createElement("th");
+    th.innerText = "Winner";
+    row.appendChild(th);
+    // New headers for Purple Cap and Orange Cap
+    th = document.createElement("th");
+    th.innerText = "Purple Cap";
+    row.appendChild(th);
+    th = document.createElement("th");
+    th.innerText = "Orange Cap";
+    row.appendChild(th);
+    
+    th = document.createElement("th");
+    th.innerText = "Points";
+    row.appendChild(th);
+    header.appendChild(row);
+  }
+  
+  function displayPredictions(){
+    generateDetailedPredictionTableHeader();
+    const tableBody = document.getElementById("predictionTable").getElementsByTagName("tbody")[0];
+    tableBody.innerHTML = "";
+    fetch("/actual_results")
+    .then(response => response.json())
+    .then(actualData => {
+      if (actualData && actualData.actualResults && actualData.actualResults.length === gamesList.length){
+        const row = tableBody.insertRow(0);
+        let cell = row.insertCell(-1);
+        cell.innerText = "Actual Results";
+        cell.style.fontWeight = "bold";
+        actualData.actualResults.forEach(result => {
+          cell = row.insertCell(-1);
+          cell.innerText = result;
+          cell.style.backgroundColor = teamColors[result] || "#2f2f2f";
+          cell.style.fontWeight = "bold";
+        });
+        if (actualData.actualSemifinalists && actualData.actualSemifinalists.length === 4){
+          actualData.actualSemifinalists.forEach(team => {
+            cell = row.insertCell(-1);
+            cell.innerText = team;
+            cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+            cell.style.fontWeight = "bold";
+          });
+        } else {
+          for (let i = 0; i < 4; i++) row.insertCell(-1).innerText = "";
+        }
+        if (actualData.actualFinalists && actualData.actualFinalists.length === 2){
+          actualData.actualFinalists.forEach(team => {
+            cell = row.insertCell(-1);
+            cell.innerText = team;
+            cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+            cell.style.fontWeight = "bold";
+          });
+        } else {
+          for (let i = 0; i < 2; i++) row.insertCell(-1).innerText = "";
+        }
+        let winnerCell = row.insertCell(-1);
+        winnerCell.innerText = actualData.actualWinner || "";
+        winnerCell.style.backgroundColor = teamColors[actualData.actualWinner] || "#2f2f2f";
+        winnerCell.style.fontWeight = "bold";
+        row.insertCell(-1).innerText = "";
+        // New cells for Purple Cap and Orange Cap (for actual results row, leave empty)
+        row.insertCell(-1).innerText = "";
+        row.insertCell(-1).innerText = "";
+      }
+      fetch("/get_predictions")
+      .then(response => {
+        if (!response.ok) throw new Error("Server response not ok");
+        return response.json();
+      })
+      .then(predictions => {
+        console.log("Detailed predictions count:", predictions.length);
+        if (!Array.isArray(predictions) || predictions.length === 0){
+          tableBody.innerHTML += `<tr><td colspan="${1 + gamesList.length + 4 + 2 + 1 + 2 + 1}">No predictions available</td></tr>`;
+        } else {
+          predictions.forEach((prediction, idx) => {
+            const row = tableBody.insertRow(-1);
+            const nameCell = row.insertCell();
+            nameCell.innerText = prediction.name ? prediction.name : "User";
+            nameCell.style.backgroundColor = nameCellBgColor;
+            nameCell.style.color = nameCellTextColor;
+            nameCell.style.fontWeight = "bold";
+            nameCell.style.whiteSpace = "nowrap";
+            if (!prediction.predictions || prediction.predictions.length !== gamesList.length){
+              for (let i = 0; i < gamesList.length; i++){
+                row.insertCell(-1).innerText = "";
+              }
+            } else {
+              prediction.predictions.forEach(pred => {
+                row.insertCell(-1).innerText = pred;
+              });
+            }
+            if (!prediction.semifinalists){
+              for (let i = 0; i < 4; i++){
+                row.insertCell(-1).innerText = "";
+              }
+            } else {
+              let semis = (typeof prediction.semifinalists === "string") ? JSON.parse(prediction.semifinalists) : prediction.semifinalists;
+              semis.forEach(s => {
+                row.insertCell(-1).innerText = s;
+              });
+            }
+            if (!prediction.finalists){
+              for (let i = 0; i < 2; i++){
+                row.insertCell(-1).innerText = "";
+              }
+            } else {
+              let finals = (typeof prediction.finalists === "string") ? JSON.parse(prediction.finalists) : prediction.finalists;
+              finals.forEach(f => {
+                row.insertCell(-1).innerText = f;
+              });
+            }
+            row.insertCell(-1).innerText = prediction.winner;
+            let purpleCell = row.insertCell(-1);
+            purpleCell.innerText = prediction.purple_cap || "";
+            purpleCell.style.fontWeight = "bold";
+            purpleCell.style.backgroundColor = "#90EE90";
+            purpleCell.style.color = "#000";
+            let orangeCell = row.insertCell(-1);
+            orangeCell.innerText = prediction.orange_cap || "";
+            orangeCell.style.fontWeight = "bold";
+            orangeCell.style.backgroundColor = "#FFA500";
+            orangeCell.style.color = "#000";
+            let pointsCell = row.insertCell(-1);
+            pointsCell.innerText = prediction.points;
+            if (!isNaN(prediction.points) && prediction.points > 0){
+              pointsCell.style.backgroundColor = "#008000";
+              pointsCell.style.color = "#fff";
+            } else {
+              pointsCell.style.backgroundColor = "#2f2f2f";
+              pointsCell.style.color = "#fff";
+            }
+          });
+          colorizeTable();
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching detailed predictions:", error);
+        tableBody.innerHTML = `<tr><td colspan="${1 + gamesList.length + 4 + 2 + 1 + 2 + 1}">Error loading predictions</td></tr>`;
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching actual results for detailed predictions:", error);
+      fetchPredictionsFallback();
+    });
+  }
+  function fetchPredictionsFallback(){
+    const tableBody = document.getElementById("predictionTable").getElementsByTagName("tbody")[0];
+    fetch("/get_predictions")
+    .then(response => {
+      if (!response.ok) throw new Error("Server response not ok");
+      return response.json();
+    })
+    .then(predictions => {
+      if (!Array.isArray(predictions) || predictions.length === 0){
+        tableBody.innerHTML += `<tr><td colspan="21">No predictions available</td></tr>`;
+      } else {
+        predictions.forEach(prediction => {
+          const row = tableBody.insertRow(-1);
+          row.insertCell(0).innerText = prediction.name ? prediction.name : "User";
+          if (!prediction.predictions || prediction.predictions.length !== gamesList.length){
+            for (let i = 0; i < gamesList.length; i++){
+              row.insertCell(-1).innerText = "";
+            }
+          } else {
+            prediction.predictions.forEach(pred => {
+              row.insertCell(-1).innerText = pred;
+            });
+          }
+          if (!prediction.semifinalists){
+            for (let i = 0; i < 4; i++){
+              row.insertCell(-1).innerText = "";
+            }
+          } else {
+            let semis = (typeof prediction.semifinalists === "string") ? JSON.parse(prediction.semifinalists) : prediction.semifinalists;
+            semis.forEach(s => {
+              row.insertCell(-1).innerText = s;
+            });
+          }
+          if (!prediction.finalists){
+            for (let i = 0; i < 2; i++){
+              row.insertCell(-1).innerText = "";
+            }
+          } else {
+            let finals = (typeof prediction.finalists === "string") ? JSON.parse(prediction.finalists) : prediction.finalists;
+            finals.forEach(f => {
+              row.insertCell(-1).innerText = f;
+            });
+          }
+          row.insertCell(-1).innerText = prediction.winner;
+          let purpleCell = row.insertCell(-1);
+          purpleCell.innerText = prediction.purple_cap || "";
+          purpleCell.style.fontWeight = "bold";
+          purpleCell.style.backgroundColor = "#90EE90";
+          purpleCell.style.color = "#000";
+          let orangeCell = row.insertCell(-1);
+          orangeCell.innerText = prediction.orange_cap || "";
+          orangeCell.style.fontWeight = "bold";
+          orangeCell.style.backgroundColor = "#FFA500";
+          orangeCell.style.color = "#000";
+          row.insertCell(-1).innerText = prediction.points;
+          colorizeTable();
+        });
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching predictions (fallback):", error);
+      tableBody.innerHTML = `<tr><td colspan="21">Error loading predictions</td></tr>`;
+    });
+  }
+  function colorizeTable(){
+    const tableBody = document.getElementById("predictionTable").getElementsByTagName("tbody")[0];
+    const rows = tableBody.rows;
+    for (let r = 0; r < rows.length; r++){
+      const row = rows[r];
+      for (let i = 1; i <= numGames; i++){
+        const cell = row.cells[i];
+        const team = cell.innerText.trim();
+        cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      }
+      for (let i = 1 + numGames; i < 1 + gamesList.length + 4; i++){
+        const cell = row.cells[i];
+        const team = cell.innerText.trim();
+        cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      }
+      for (let i = 1 + gamesList.length + 4; i < 1 + gamesList.length + 4 + 2; i++){
+        const cell = row.cells[i];
+        const team = cell.innerText.trim();
+        cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      }
+      {
+        const cell = row.cells[1 + gamesList.length + 4 + 2];
+        const team = cell.innerText.trim();
+        cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+      }
+    }
+  }
+  function displayFinalsPredictions() {
+    const finalsTable = document.getElementById("finalsPredictionTable");
+    let tableBody = finalsTable.getElementsByTagName("tbody")[0];
+    
+    if (!tableBody) {
+      tableBody = document.createElement("tbody");
+      finalsTable.appendChild(tableBody);
+    }
+  
+    tableBody.innerHTML = "";
+  
+    fetch("/get_predictions")
+      .then(response => {
+        if (!response.ok) throw new Error("Server response not ok");
+        return response.json();
+      })
+      .then(predictions => {
+        console.log("Finals predictions count:", predictions.length);
+  
+        if (!Array.isArray(predictions) || predictions.length === 0) {
+          tableBody.innerHTML = "<tr><td colspan='10'>No playoffs predictions available</td></tr>";
+          return;
+        }
+  
+        predictions.forEach((prediction, idx) => {
+          const row = document.createElement("tr");
+  
+          // Add numbering and user name
+          const number = idx + 1;
+          const displayName = prediction.name || "User";
+          const nameCell = document.createElement("td");
+          nameCell.innerText = `${number}. ${displayName}`;
+          nameCell.style.backgroundColor = nameCellBgColor;
+          nameCell.style.color = nameCellTextColor;
+          nameCell.style.fontWeight = "bold";
+          nameCell.style.whiteSpace = "nowrap";
+          row.appendChild(nameCell);
+  
+          // Semifinalists (Rank 1-4)
+          let ranks = [];
+          if (prediction.semifinalists) {
+            ranks = (typeof prediction.semifinalists === "string") ? JSON.parse(prediction.semifinalists) : prediction.semifinalists;
+          }
+          for (let i = 0; i < 4; i++) {
+            const cell = document.createElement("td");
+            cell.innerText = ranks[i] || "";
+            cell.style.fontWeight = "bold";
+            if (cell.innerText.trim()) {
+              cell.style.backgroundColor = teamColors[cell.innerText.trim()] || "#2f2f2f";
+              cell.style.color = "#fff";
+            }
+            row.appendChild(cell);
+          }
+  
+          // Finalists (2 teams)
+          let finals = [];
+          if (prediction.finalists) {
+            finals = (typeof prediction.finalists === "string") ? JSON.parse(prediction.finalists) : prediction.finalists;
+          }
+          for (let i = 0; i < 2; i++) {
+            const cell = document.createElement("td");
+            cell.innerText = finals[i] || "";
+            cell.style.fontWeight = "bold";
+            if (cell.innerText.trim()) {
+              cell.style.backgroundColor = teamColors[cell.innerText.trim()] || "#2f2f2f";
+              cell.style.color = "#fff";
+            }
+            row.appendChild(cell);
+          }
+  
+          // Winner
+          const winnerCell = document.createElement("td");
+          winnerCell.innerText = prediction.winner || "";
+          winnerCell.style.fontWeight = "bold";
+          if (winnerCell.innerText.trim()) {
+            winnerCell.style.backgroundColor = teamColors[winnerCell.innerText.trim()] || "#2f2f2f";
+            winnerCell.style.color = "#fff";
+          }
+          row.appendChild(winnerCell);
+  
+          // Purple Cap
+          const purpleCapCell = document.createElement("td");
+          purpleCapCell.innerText = prediction.purple_cap || "";
+          purpleCapCell.style.fontWeight = "bold";
+          purpleCapCell.style.backgroundColor = "#90EE90";
+          purpleCapCell.style.color = "#000";
+          row.appendChild(purpleCapCell);
+  
+          // Orange Cap
+          const orangeCapCell = document.createElement("td");
+          orangeCapCell.innerText = prediction.orange_cap || "";
+          orangeCapCell.style.fontWeight = "bold";
+          orangeCapCell.style.backgroundColor = "#FFA500";
+          orangeCapCell.style.color = "#000";
+          row.appendChild(orangeCapCell);
+  
+          tableBody.appendChild(row);
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching playoffs predictions:", error);
+        tableBody.innerHTML = "<tr><td colspan='10'>Error loading playoffs predictions</td></tr>";
+      });
+  }
+  
+
+  // ----- Attach Event Listeners and Expose Functions -----
+  window.addEventListener("load", function(){
+    const enterBtn = document.getElementById("enterPredictionBtn");
+    if (enterBtn) {
+      enterBtn.onclick = showPredictionForm;
+      console.log("Enter Predictions button assigned");
+    } else {
+      console.error("Enter Predictions button not found.");
+    }
+    // Refresh all tables on page load
+    displayLeaderboard();
+    displayPredictions();
+    fetch("/get_predictions")
+      .then(response => {
+        if (!response.ok) throw new Error("Server response not ok");
+        return response.json();
+      })
+      .then(predictions => {
+        console.log("Finals predictions count:", predictions.length);
+      })
+      .catch(error => {
+        console.error("Error fetching finals predictions count:", error);
+      });
+    displayFinalsPredictions();
+    generateDetailedPredictionTableHeader();
+  });
+  function generateDetailedPredictionTableHeader(){
+    const header = document.getElementById("predictionTableHeader");
+    header.innerHTML = "";
+    const row = document.createElement("tr");
+    let th = document.createElement("th");
+    th.innerText = "Name";
+    row.appendChild(th);
+    gamesList.forEach(game=>{
+      th = document.createElement("th");
+      th.innerText = game;
+      row.appendChild(th);
+    });
+    for (let i = 1; i <= 4; i++){
+      th = document.createElement("th");
+      th.innerText = `Rank ${i}`;
+      row.appendChild(th);
+    }
+    for (let i = 1; i <= 2; i++){
+      th = document.createElement("th");
+      th.innerText = `Final ${i}`;
+      row.appendChild(th);
+    }
+    th = document.createElement("th");
+    th.innerText = "Winner";
+    row.appendChild(th);
+    // New headers for Purple Cap and Orange Cap
+    th = document.createElement("th");
+    th.innerText = "Purple Cap";
+    row.appendChild(th);
+    th = document.createElement("th");
+    th.innerText = "Orange Cap";
+    row.appendChild(th);
+    
+    th = document.createElement("th");
+    th.innerText = "Points";
+    row.appendChild(th);
+    header.appendChild(row);
+  }
+  window.showExpertTab = showExpertTab;
+  window.showAllPredictionsTab = showAllPredictionsTab;
+  window.showPredictionForm = showPredictionForm;
+  window.showMainView = showMainView;
+  window.submitUserPrediction = submitUserPrediction;
+  window.displayFinalsPredictions = displayFinalsPredictions;
+  window.displayPredictions = displayPredictions;
+})();
+
+
+
+
+
+
+
+

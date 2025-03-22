@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Indian Premier League 2025</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <!-- Hero/Header Section -->
+    <header class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1>INDIAN PREMIER LEAGUE 2025</h1>
+        <p>Predict the outcomes and see who reigns supreme!</p>
+      </div>
+    </header>
+    
+    <!-- Main View Container -->
+    <div class="container fade-in" id="main-view">
+      <!-- Button to Enter Predictions -->
+      <button id="enterPredictionBtn" class="action-btn">Enter Predictions</button>
+      
+      <!-- Tabs for switching views -->
+      <div class="tabs">
+        <button id="tab-expert" class="tab" onclick="showExpertTab()">Expert Predictions</button>
+        <button id="tab-all" class="tab" onclick="showAllPredictionsTab()">View Predictions</button>
+      </div>
+      
+      <!-- Playoffs/Finals, Winner & Cap Predictions Table -->
+      <div id="finalsPredictionContainer">
+        <!-- Wrap table in a scroll container for mobile vertical/horizontal scrolling -->
+        <div class="table-scroll">
+          <table id="finalsPredictionTable">
+            <thead>
+              <tr>
+                <th colspan="10" class="violet-header">
+                  PLAYOFFS, FINALISTS, WINNER &amp; CAP PREDICTIONS
+                </th>
+              </tr>
+              <tr>
+                <th>Name</th>
+                <th class="rank-header">Rank 1</th>
+                <th class="rank-header">Rank 2</th>
+                <th class="rank-header">Rank 3</th>
+                <th class="rank-header">Rank 4</th>
+                <th class="finalist-header">Finalist 1</th>
+                <th class="finalist-header">Finalist 2</th>
+                <th class="winner-header">Winner</th>
+                <th class="cap-header">Purple Cap</th>
+                <th class="cap-header">Orange Cap</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Expert Predictions (Scoreboard) Section -->
+      <div id="scoreboardContainer" class="scoreboard-container">
+        <div class="scoreboard-header">
+          <div class="scoreboard-title">EXPERT RANKINGS</div>
+          <div class="scoreboard-subtitle">IN IPL 2025</div>
+        </div>
+        <div class="table-scroll">
+          <table id="leaderboardTable" class="scoreboard-table">
+            <thead>
+              <tr>
+                <th>Name (Rank)</th>
+                <th>Total Points</th>
+                <th>Hits</th>
+                <th>Misses</th>
+                <th># Games</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- All Predictions Section (hidden by default) -->
+      <div id="allPredictionsContainer" style="display: none;">
+        <h2>All Predictions</h2>
+        <div id="predictionRecordDiv">
+          <table id="predictionTable">
+            <thead id="predictionTableHeader"></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="action-btn" onclick="showExpertTab()">Back to Expert Predictions</button>
+      </div>
+    </div>
+    
+    <!-- Prediction Form View (hidden by default) -->
+    <div class="container fade-in" id="prediction-form" style="display: none;">
+      <!-- Competition Rules Section -->
+      <div class="rules-section">
+        <table class="rules-table">
+          <caption>Competition Rules</caption>
+          <tr>
+            <td>All home teams are listed second. For example, "CSK vs MI" means MI (H) is the home team.</td>
+          </tr>
+          <tr>
+            <td>Each correct prediction in the 70 league games is worth 1 point.</td>
+          </tr>
+          <tr>
+            <td>
+              Each correctly predicted playoff team (Rank 1–4) is worth 2 points each. However, if you predict a team as Rank 1 or Rank 2 and that team finishes in the top 2, you receive 3 points for that rank.
+            </td>
+          </tr>
+          <tr>
+            <td>Each correctly predicted finalist is worth 4 points each.</td>
+          </tr>
+          <tr>
+            <td>A correctly predicted winner is worth 5 points.</td>
+          </tr>
+          <tr>
+            <td>Each correct Purple Cap or Orange Cap prediction is worth 5 points each.</td>
+          </tr>
+          <tr>
+            <td>Good luck and happy predicting!</td>
+          </tr>
+        </table>
+      </div>
+      <!-- End Competition Rules -->
+      
+      <h2 class="violet-heading" id="enterPredictionTitle">Enter Your Prediction</h2>
+      <form id="userPredictionForm">
+        <label for="name" class="violet-label">Your Name (or Nickname):</label>
+        <input type="text" id="name" required />
+        <br /><br />
+        <!-- Container for game predictions -->
+        <div id="gamePredictionsContainer"></div>
+        
+        <!-- Playoff Rank Selections -->
+        <h3 class="violet-heading-sub">Choose Your Playoff Teams by Rank:</h3>
+        <div id="rank1Section" class="rank-section">
+          <div class="rank-header">RANK 1</div>
+          <div id="rank1Container" class="rank-container"></div>
+        </div>
+        <div id="rank2Section" class="rank-section">
+          <div class="rank-header">RANK 2</div>
+          <div id="rank2Container" class="rank-container"></div>
+        </div>
+        <div id="rank3Section" class="rank-section">
+          <div class="rank-header">RANK 3</div>
+          <div id="rank3Container" class="rank-container"></div>
+        </div>
+        <div id="rank4Section" class="rank-section">
+          <div class="rank-header">RANK 4</div>
+          <div id="rank4Container" class="rank-container"></div>
+        </div>
+        
+        <!-- Finalists Selection -->
+        <h3 class="violet-heading-sub">Choose Your 2 Finalists</h3>
+        <div id="finalistContainer"></div>
+        
+        <!-- Winner Selection -->
+        <h3 class="violet-heading-sub">Choose Your Winner</h3>
+        <div id="winnerContainer"></div>
+        
+        <!-- New Fields for Cap Winners (placed after Winner) -->
+        <label for="purple_cap" class="violet-label">Purple Cap Winner:</label>
+        <input type="text" id="purple_cap" required />
+        <br /><br />
+        <label for="orange_cap" class="violet-label">Orange Cap Winner:</label>
+        <input type="text" id="orange_cap" required />
+        <br /><br />
+        
+        <button type="button" class="action-btn" onclick="submitUserPrediction()">Submit Prediction</button>
+      </form>
+      
+      <!-- Acknowledgment area: Ticker-style banner -->
+      <div id="acknowledgment" class="ticker" style="display: none;">
+        <div class="ticker-message">YOUR PREDICTION HAS BEEN SUCCESSFULLY SUBMITTED!</div>
+        <button class="action-btn" onclick="showMainView()">Take me back to main page</button>
+      </div>
+    </div>
+    
+    <!-- Script References -->
+    <script src="user_prediction_script.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+

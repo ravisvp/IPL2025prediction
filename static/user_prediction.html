@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Prediction</title>
+  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    /* Additional styles for clickable team boxes */
+    .team-box {
+      display: inline-block;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+    .team-box:hover {
+      transform: scale(1.05);
+    }
+    .team-box.selected {
+      border: 3px solid #000;
+    }
+    .game-container {
+      margin-bottom: 15px;
+    }
+    .game-label {
+      display: inline-block;
+      width: 200px;
+      vertical-align: middle;
+    }
+    .selected-team {
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 20px;
+      font-weight: bold;
+    }
+    .multi-select-container {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container fade-in">
+    <h1>Enter Your Prediction</h1>
+    <form id="userPredictionForm">
+      <!-- Name field for display name -->
+      <label for="name">Your Name (or Nickname):</label>
+      <input type="text" id="name" required>
+      <br><br>
+      
+      <!-- Container for game predictions -->
+      <div id="gamePredictionsContainer"></div>
+      
+      <h3>Choose Your 4 Semifinalists</h3>
+      <div id="semifinalContainer"></div>
+      
+      <h3>Choose Your 2 Finalists</h3>
+      <div id="finalistContainer"></div>
+      
+      <h3>Choose Your Winner</h3>
+      <div id="winnerContainer"></div>
+      
+      <br>
+      <button type="button" onclick="submitUserPrediction()">Submit Prediction</button>
+    </form>
+    <div id="acknowledgment" class="fade-in" style="display:none;">
+      <p>Your prediction has been successfully submitted!</p>
+      <a href="index.html">Go to Main Display</a>
+    </div>
+  </div>
+  <script src="user_prediction_script.js"></script>
+</body>
+</html>
+
