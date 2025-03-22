@@ -15,21 +15,40 @@
         <p>Predict the outcomes and see who reigns supreme!</p>
       </div>
     </header>
-    
+
     <!-- Main View Container -->
     <div class="container fade-in" id="main-view">
       <!-- Button to Enter Predictions -->
       <button id="enterPredictionBtn" class="action-btn">Enter Predictions</button>
-      
+
       <!-- Tabs for switching views -->
       <div class="tabs">
         <button id="tab-expert" class="tab" onclick="showExpertTab()">Expert Predictions</button>
         <button id="tab-all" class="tab" onclick="showAllPredictionsTab()">View Predictions</button>
       </div>
-      
+
+      <!-- Statistics Section -->
+      <div id="statisticsContainer" class="table-scroll">
+        <h2 class="violet-heading">Prediction Statistics</h2>
+
+        <div class="chart-container">
+          <div class="chart-header violet-header">Winner Predictions</div>
+          <canvas id="winnerChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header violet-header">Purple Cap Predictions</div>
+          <canvas id="purpleCapChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header violet-header">Orange Cap Predictions</div>
+          <canvas id="orangeCapChart"></canvas>
+        </div>
+      </div>
+
       <!-- Playoffs/Finals, Winner & Cap Predictions Table -->
       <div id="finalsPredictionContainer">
-        <!-- Wrap table in a scroll container for mobile vertical/horizontal scrolling -->
         <div class="table-scroll">
           <table id="finalsPredictionTable">
             <thead>
@@ -55,7 +74,7 @@
           </table>
         </div>
       </div>
-      
+
       <!-- Expert Predictions (Scoreboard) Section -->
       <div id="scoreboardContainer" class="scoreboard-container">
         <div class="scoreboard-header">
@@ -77,7 +96,7 @@
           </table>
         </div>
       </div>
-      
+
       <!-- All Predictions Section (hidden by default) -->
       <div id="allPredictionsContainer" style="display: none;">
         <h2>All Predictions</h2>
@@ -90,7 +109,7 @@
         <button class="action-btn" onclick="showExpertTab()">Back to Expert Predictions</button>
       </div>
     </div>
-    
+
     <!-- Prediction Form View (hidden by default) -->
     <div class="container fade-in" id="prediction-form" style="display: none;">
       <!-- Competition Rules Section -->
@@ -122,16 +141,16 @@
           </tr>
         </table>
       </div>
-      <!-- End Competition Rules -->
-      
+
       <h2 class="violet-heading" id="enterPredictionTitle">Enter Your Prediction</h2>
       <form id="userPredictionForm">
         <label for="name" class="violet-label">Your Name (or Nickname):</label>
         <input type="text" id="name" required />
         <br /><br />
+
         <!-- Container for game predictions -->
         <div id="gamePredictionsContainer"></div>
-        
+
         <!-- Playoff Rank Selections -->
         <h3 class="violet-heading-sub">Choose Your Playoff Teams by Rank:</h3>
         <div id="rank1Section" class="rank-section">
@@ -150,38 +169,43 @@
           <div class="rank-header">RANK 4</div>
           <div id="rank4Container" class="rank-container"></div>
         </div>
-        
+
         <!-- Finalists Selection -->
         <h3 class="violet-heading-sub">Choose Your 2 Finalists</h3>
         <div id="finalistContainer"></div>
-        
+
         <!-- Winner Selection -->
         <h3 class="violet-heading-sub">Choose Your Winner</h3>
         <div id="winnerContainer"></div>
-        
-        <!-- New Fields for Cap Winners (placed after Winner) -->
+
+        <!-- New Fields for Cap Winners -->
         <label for="purple_cap" class="violet-label">Purple Cap Winner:</label>
         <input type="text" id="purple_cap" required />
         <br /><br />
+
         <label for="orange_cap" class="violet-label">Orange Cap Winner:</label>
         <input type="text" id="orange_cap" required />
         <br /><br />
-        
+
         <button type="button" class="action-btn" onclick="submitUserPrediction()">Submit Prediction</button>
       </form>
-      
-      <!-- Acknowledgment area: Ticker-style banner -->
+
+      <!-- Acknowledgment -->
       <div id="acknowledgment" class="ticker" style="display: none;">
         <div class="ticker-message">YOUR PREDICTION HAS BEEN SUCCESSFULLY SUBMITTED!</div>
         <button class="action-btn" onclick="showMainView()">Take me back to main page</button>
       </div>
     </div>
-    
+
     <!-- Script References -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="user_prediction_script.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
+
+
+
 
 
 

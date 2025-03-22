@@ -430,6 +430,204 @@
     row.appendChild(th);
     header.appendChild(row);
   }
+  function createBarChart(ctx, chartLabel, dataCounts, useTeamColors = false, defaultColor = "#CCCCCC") {
+    // Sort the dataCounts entries from highest to lowest
+    const sortedEntries = Object.entries(dataCounts).sort((a, b) => b[1] - a[1]);
+  
+    const labels = sortedEntries.map(entry => entry[0]);
+    const data = sortedEntries.map(entry => entry[1]);
+  
+    // Generate colors: either from teamColors or use a default color
+    const backgroundColors = useTeamColors
+      ? labels.map(team => teamColors[team] || defaultColor)
+      : labels.map(() => defaultColor);
+  
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: chartLabel,
+          data: data,
+          backgroundColor: backgroundColors,
+          borderColor: '#333',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        indexAxis: 'y', // Horizontal bars
+        scales: {
+          y: {
+            ticks: {
+              color: '#FFFFFF', // Make label text white
+              font: {
+                size: 14,       // Increase font size
+                weight: 'bold'  // Make it bold
+              }
+            }
+          },
+          x: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#FFFFFF' // Optional: make x-axis numbers white too
+            },
+            grid: {
+              color: '#555' // Optional: adjust grid color for visibility
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: true
+          }
+        },
+        layout: {
+          padding: {
+            left: 20,
+            right: 20,
+            top: 10,
+            bottom: 10
+          }
+        }
+      }
+    });
+  }
+  
+  
+  function displayStatistics() {
+    const container = document.getElementById("statisticsContainer");
+  
+    if (!container) {
+      console.error("Statistics container not found!");
+      return;
+    }
+  
+    container.innerHTML = "<p>Loading statistics...</p>";
+  
+    fetch("/get_predictions")
+      .then(response => {
+        if (!response.ok) throw new Error("Server response not ok");
+        return response.json();
+      })
+      .then(predictions => {
+        if (!predictions || predictions.length === 0) {
+          container.innerHTML = "<p>No predictions to show statistics.</p>";
+          return;
+        }
+  
+        const winnerCounts = {};
+        const purpleCapCounts = {};
+        const orangeCapCounts = {};
+  
+        predictions.forEach(pred => {
+          const winner = pred.winner || "Unknown";
+          const purpleCap = pred.purple_cap || "Unknown";
+          const orangeCap = pred.orange_cap || "Unknown";
+  
+          winnerCounts[winner] = (winnerCounts[winner] || 0) + 1;
+          purpleCapCounts[purpleCap] = (purpleCapCounts[purpleCap] || 0) + 1;
+          orangeCapCounts[orangeCap] = (orangeCapCounts[orangeCap] || 0) + 1;
+        });
+  
+        container.innerHTML = `
+        <h2 class="violet-heading">Prediction Statistics</h2>
+        
+        <div class="chart-container">
+          <div class="chart-header violet-header">Winner Predictions</div>
+          <canvas id="winnerChart"></canvas>
+        </div>
+      
+        <div class="chart-container">
+          <div class="chart-header violet-header">Purple Cap Predictions</div>
+          <canvas id="purpleCapChart"></canvas>
+        </div>
+      
+        <div class="chart-container">
+          <div class="chart-header violet-header">Orange Cap Predictions</div>
+          <canvas id="orangeCapChart"></canvas>
+        </div>
+      `;
+      
+        // Create the bar charts
+        createBarChart(
+          document.getElementById("winnerChart").getContext("2d"),
+          "Winner Predictions",
+          winnerCounts,
+          true
+        );
+  
+        createBarChart(
+          document.getElementById("purpleCapChart").getContext("2d"),
+          "Purple Cap Predictions",
+          purpleCapCounts,
+          false,
+          "#90EE90"
+        );
+  
+        createBarChart(
+          document.getElementById("orangeCapChart").getContext("2d"),
+          "Orange Cap Predictions",
+          orangeCapCounts,
+          false,
+          "#FFA500"
+        );
+      })
+      .catch(error => {
+        console.error("Error fetching predictions statistics:", error);
+        container.innerHTML = "<p>Error loading statistics.</p>";
+      });
+  }
+  
+  function renderBarChart(canvasId, label, dataCounts) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+  
+    // Convert the counts object to an array and sort it descending by count
+    const sortedEntries = Object.entries(dataCounts).sort((a, b) => b[1] - a[1]);
+  
+    const labels = sortedEntries.map(entry => entry[0]);
+    const data = sortedEntries.map(entry => entry[1]);
+  
+    // Create an array of colors based on team names, or default color if not found.
+    const backgroundColors = labels.map(team => teamColors[team] || 'rgba(54, 162, 235, 0.6)');
+  
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: label,
+          data: data,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        indexAxis: 'y', // Horizontal bar
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  }
+  
+  
   
   function displayPredictions(){
     generateDetailedPredictionTableHeader();
@@ -780,6 +978,7 @@
         console.error("Error fetching finals predictions count:", error);
       });
     displayFinalsPredictions();
+    displayStatistics();
     generateDetailedPredictionTableHeader();
   });
   function generateDetailedPredictionTableHeader(){
