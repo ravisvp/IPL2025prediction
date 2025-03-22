@@ -261,5 +261,11 @@ if __name__ == "__main__":
     print("Starting Flask server on port", port)
     app.run(host="0.0.0.0", port=port, debug=True)
 
-
+@app.route("/debug_predictions")
+def debug_predictions():
+    predictions = Prediction.query.all()
+    return {
+        "total_predictions": len(predictions),
+        "predictions": [p.name for p in predictions]
+    }
 
