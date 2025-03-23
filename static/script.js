@@ -431,16 +431,16 @@
     header.appendChild(row);
   }
   function createBarChart(ctx, chartLabel, dataCounts, useTeamColors = false, defaultColor = "#CCCCCC") {
-    // Sort the dataCounts entries from highest to lowest
     const sortedEntries = Object.entries(dataCounts).sort((a, b) => b[1] - a[1]);
   
     const labels = sortedEntries.map(entry => entry[0]);
     const data = sortedEntries.map(entry => entry[1]);
   
-    // Generate colors: either from teamColors or use a default color
     const backgroundColors = useTeamColors
       ? labels.map(team => teamColors[team] || defaultColor)
       : labels.map(() => defaultColor);
+  
+    const isMobile = window.innerWidth < 600;
   
     new Chart(ctx, {
       type: 'bar',
@@ -456,14 +456,23 @@
       },
       options: {
         responsive: true,
-        indexAxis: 'y', // Horizontal bars
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        layout: {
+          padding: {
+            left: isMobile ? 5 : 20,
+            right: isMobile ? 5 : 20,
+            top: 10,
+            bottom: 10
+          }
+        },
         scales: {
           y: {
             ticks: {
-              color: '#FFFFFF', // Make label text white
+              color: '#FFFFFF',
               font: {
-                size: 14,       // Increase font size
-                weight: 'bold'  // Make it bold
+                size: isMobile ? 10 : 14,
+                weight: 'bold'
               }
             }
           },
@@ -471,10 +480,13 @@
             beginAtZero: true,
             ticks: {
               precision: 0,
-              color: '#FFFFFF' // Optional: make x-axis numbers white too
+              color: '#FFFFFF',
+              font: {
+                size: isMobile ? 8 : 12
+              }
             },
             grid: {
-              color: '#555' // Optional: adjust grid color for visibility
+              color: '#555'
             }
           }
         },
@@ -485,18 +497,11 @@
           tooltip: {
             enabled: true
           }
-        },
-        layout: {
-          padding: {
-            left: 20,
-            right: 20,
-            top: 10,
-            bottom: 10
-          }
         }
       }
     });
   }
+  
   
   
   function displayStatistics() {
