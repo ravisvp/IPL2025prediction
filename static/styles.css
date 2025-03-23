@@ -517,7 +517,6 @@ table tbody tr:hover {
 }
 
 
-
 /* Chart container styling */
 .chart-container {
   margin-bottom: 30px;
@@ -534,6 +533,45 @@ table tbody tr:hover {
 }
 
 
+/* COMMENTS CONTAINER STYLING */
+.comments-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background */
+  border-radius: 10px;
+  color: #fff; /* White text for contrast */
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.comments-container h2 {
+  margin-bottom: 15px;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.comment-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1); /* Light transparent background */
+  border-radius: 5px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.comment-item strong {
+  color: #FFD700; /* Gold color for the name */
+  font-weight: bold;
+}
+
+.comment-item time {
+  font-size: 12px;
+  color: #ccc;
+  margin-left: 10px;
+}
 
 
 

@@ -4,44 +4,54 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import json
 from datetime import datetime
-# Initialize Flask to serve static files from the "static" folder.
+
+# Initialize Flask app and configs
 app = Flask(__name__, static_url_path='', static_folder='static')
 CORS(app)
-# Configuration
-app.config["SECRET_KEY"] = "your-secret-key"  # Replace with a strong secret key in production
-# Use environment variable DATABASE_URI if defined; otherwise, default to local testing.
+
+app.config["SECRET_KEY"] = "your-secret-key"
 db_uri = os.environ.get("DATABASE_URI", "sqlite:///predictions.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
-# Global variable to store the actual results once submitted.
+
+# Global storage for actual results
 actual_results_data = {}
-# Prediction model for a 70-game tournament
+
+# Models
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, default=0, nullable=False)
-    name = db.Column(db.String(100), nullable=False)  # Display name provided by the user.
-    predictions = db.Column(db.Text, nullable=False)    # JSON array of 70 game predictions.
-    semifinalists = db.Column(db.Text, nullable=False)  # JSON array of 4 playoff predictions.
-    finalists = db.Column(db.Text, nullable=False)      # JSON array of 2 finalist predictions.
-    winner = db.Column(db.String(10), nullable=False)     # Winner prediction (stored uppercase).
-    purple_cap = db.Column(db.String(100), nullable=False)  # Predicted Purple Cap Winner.
-    orange_cap = db.Column(db.String(100), nullable=False)  # Predicted Orange Cap Winner.
+    name = db.Column(db.String(100), nullable=False)
+    predictions = db.Column(db.Text, nullable=False)
+    semifinalists = db.Column(db.Text, nullable=False)
+    finalists = db.Column(db.Text, nullable=False)
+    winner = db.Column(db.String(10), nullable=False)
+    purple_cap = db.Column(db.String(100), nullable=False)
+    orange_cap = db.Column(db.String(100), nullable=False)
     points = db.Column(db.Integer, default=0)
-    hits = db.Column(db.Integer, default=0)    # Total correct league game predictions
-    misses = db.Column(db.Integer, default=0)  # Total wrong league game predictions
+    hits = db.Column(db.Integer, default=0)
+    misses = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 with app.app_context():
     db.create_all()
-# Home route to serve the index page from the "static" folder.
+
+# Routes
 @app.route("/")
 def home():
     return send_from_directory(app.static_folder, "index.html")
-# Route to serve any static files (CSS, JS, images, etc.)
+
 @app.route("/<path:filename>")
 def serve_static(filename):
     return send_from_directory(app.static_folder, filename)
-# Endpoint to submit a prediction
+
 @app.route("/submit_prediction", methods=["POST"])
 def submit_prediction():
     data = request.json
@@ -52,11 +62,13 @@ def submit_prediction():
     winner = data.get("winner")
     purple_cap = data.get("purple_cap")
     orange_cap = data.get("orange_cap")
+
     if (not name or not game_predictions or len(game_predictions) != 70 or
         not semifinalists or len(semifinalists) != 4 or
         not finalists or len(finalists) != 2 or
         not winner or not purple_cap or not orange_cap):
-        return jsonify({"error": "Missing data or incorrect number of predictions/semifinalists/finalists/winner/cap winners"}), 400
+        return jsonify({"error": "Missing or invalid data"}), 400
+
     pred = Prediction(
         user_id=0,
         name=name,
@@ -65,39 +77,57 @@ def submit_prediction():
         finalists=json.dumps(finalists),
         winner=winner.upper(),
         purple_cap=purple_cap,
-        orange_cap=orange_cap,
-        points=0,
-        hits=0,
-        misses=0
+        orange_cap=orange_cap
     )
+
     db.session.add(pred)
     db.session.commit()
+
     return jsonify({"message": "Prediction submitted successfully"}), 201
-# Endpoint to get all predictions
+
+@app.route("/submit_comment", methods=["POST"])
+def submit_comment():
+    data = request.json
+    name = data.get("name")
+    comment_text = data.get("comment")
+
+    if not name or not comment_text:
+        return jsonify({"error": "Name and comment are required"}), 400
+
+    user = Prediction.query.filter_by(name=name).first()
+    if not user:
+        return jsonify({"error": "Name not found in predictions"}), 400
+
+    comment = Comment(name=name, comment=comment_text)
+    db.session.add(comment)
+    db.session.commit()
+
+    return jsonify({"message": "Comment submitted successfully"}), 201
+
+@app.route("/get_comments", methods=["GET"])
+def get_comments():
+    comments = Comment.query.order_by(Comment.created_at.desc()).all()
+    result = []
+    for c in comments:
+        result.append({
+            "name": c.name,
+            "comment": c.comment,
+            "created_at": c.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    return jsonify(result)
+
 @app.route("/get_predictions", methods=["GET"])
 def get_predictions():
     preds = Prediction.query.all()
     result = []
     for p in preds:
-        try:
-            game_preds = json.loads(p.predictions)
-        except Exception:
-            game_preds = []
-        try:
-            semis = json.loads(p.semifinalists)
-        except Exception:
-            semis = []
-        try:
-            finals = json.loads(p.finalists)
-        except Exception:
-            finals = []
         result.append({
             "id": p.id,
             "user_id": p.user_id,
             "name": p.name,
-            "predictions": game_preds,
-            "semifinalists": semis,
-            "finalists": finals,
+            "predictions": json.loads(p.predictions),
+            "semifinalists": json.loads(p.semifinalists),
+            "finalists": json.loads(p.finalists),
             "winner": p.winner,
             "purple_cap": p.purple_cap,
             "orange_cap": p.orange_cap,
@@ -107,7 +137,38 @@ def get_predictions():
             "created_at": p.created_at.strftime('%Y-%m-%d') if p.created_at else ""
         })
     return jsonify(result)
-# Endpoint to manually clear all predictions
+
+# ✅ NEW: Update prediction by ID (edit functionality for admin)
+@app.route("/update_prediction/<int:prediction_id>", methods=["PUT"])
+def update_prediction(prediction_id):
+    pred = Prediction.query.get(prediction_id)
+    if not pred:
+        return jsonify({"error": "Prediction not found"}), 404
+
+    data = request.json
+    pred.name = data.get("name", pred.name)
+    pred.predictions = json.dumps(data.get("predictions", json.loads(pred.predictions)))
+    pred.semifinalists = json.dumps(data.get("semifinalists", json.loads(pred.semifinalists)))
+    pred.finalists = json.dumps(data.get("finalists", json.loads(pred.finalists)))
+    pred.name = data.get("name", pred.name)
+
+    pred.winner = data.get("winner", pred.winner).upper()
+    pred.purple_cap = data.get("purple_cap", pred.purple_cap)
+    pred.orange_cap = data.get("orange_cap", pred.orange_cap)
+
+    db.session.commit()
+
+    return jsonify({"message": f"Prediction {prediction_id} updated successfully"}), 200
+
+@app.route("/delete_prediction/<int:prediction_id>", methods=["DELETE"])
+def delete_prediction(prediction_id):
+    pred = Prediction.query.get(prediction_id)
+    if not pred:
+        return jsonify({"error": "Prediction not found"}), 404
+    db.session.delete(pred)
+    db.session.commit()
+    return jsonify({"message": f"Deleted prediction {prediction_id}."}), 200
+
 @app.route("/clear_predictions", methods=["DELETE"])
 def clear_predictions():
     try:
@@ -117,94 +178,94 @@ def clear_predictions():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
-# Endpoint to submit actual results and update points, hits, and misses
+
 @app.route("/submit_results", methods=["POST"])
 def submit_results():
     global actual_results_data
     data = request.json
-    # Allow partial actual results: use empty lists if not provided
+
+    # Get actual results from the form
     actual_results = data.get("actualResults") or []
     actual_semifinalists = data.get("actualSemifinalists") or []
     actual_finalists = data.get("actualFinalists") or []
     actual_winner = data.get("actualWinner") or ""
-    # New cap fields:
     actual_purple_cap = data.get("actualPurpleCap") or ""
     actual_orange_cap = data.get("actualOrangeCap") or ""
-    
-    # Convert provided actual results to uppercase
+
+    # Normalize to uppercase for comparison
     actual_results = [x.upper() for x in actual_results]
     actual_semifinalists = [x.upper() for x in actual_semifinalists]
     actual_finalists = [x.upper() for x in actual_finalists]
-    actual_winner = actual_winner.upper() if actual_winner else ""
-    actual_purple_cap = actual_purple_cap.upper() if actual_purple_cap else ""
-    actual_orange_cap = actual_orange_cap.upper() if actual_orange_cap else ""
-    
+    actual_winner = actual_winner.upper()
+    actual_purple_cap = actual_purple_cap.upper()
+    actual_orange_cap = actual_orange_cap.upper()
+
     preds = Prediction.query.all()
     updated_count = 0
-    # Calculate total available picks based on provided results (for overall points)
-    total_picks = len(actual_results)
-    if len(actual_semifinalists) == 4:
-        total_picks += 4
-    if len(actual_finalists) == 2:
-        total_picks += 2
-    if actual_winner:
-        total_picks += 1
-        
+
+    # Calculate total available picks dynamically
+    total_games_entered = len(actual_results)
+
     for p in preds:
         try:
             user_game_preds = json.loads(p.predictions)
         except Exception:
             user_game_preds = []
-        
-        # Calculate league hits and points over 70 games
+
+        # League Hits / Misses based on the number of actual results provided
         hits_league = 0
-        points = 0
-        for i in range(70):
-            if i < len(actual_results) and i < len(user_game_preds) and user_game_preds[i].upper() == actual_results[i]:
-                points += 1
+        for i in range(total_games_entered):
+            if i < len(user_game_preds) and user_game_preds[i].upper() == actual_results[i]:
                 hits_league += 1
-        # Evaluate playoff predictions (Rank 1-4) with new logic:
+
+        # Evaluate playoff predictions
         try:
             user_playoff = json.loads(p.semifinalists)
         except Exception:
             user_playoff = []
+
+        points = hits_league  # 1 point per correct league prediction
+
         if len(actual_semifinalists) == 4 and len(user_playoff) == 4:
             for rank_index in range(4):
                 predicted = user_playoff[rank_index].upper()
                 if predicted in actual_semifinalists:
-                    if rank_index < 2:
-                        if predicted in actual_semifinalists[0:2]:
-                            points += 3
-                        else:
-                            points += 2
+                    if rank_index < 2 and predicted in actual_semifinalists[:2]:
+                        points += 3
                     else:
                         points += 2
+
         # Evaluate finalist predictions: 4 points each
         try:
             user_finalists = json.loads(p.finalists)
         except Exception:
             user_finalists = []
+
         if len(actual_finalists) == 2 and len(user_finalists) == 2:
             for team in user_finalists:
                 if team.upper() in actual_finalists:
                     points += 4
-        # Evaluate winner prediction: 5 points
-        if actual_winner:
-            if p.winner.upper() == actual_winner:
-                points += 5
-        # Evaluate Purple Cap: 5 points if match
-        if actual_purple_cap:
-            if p.purple_cap.upper() == actual_purple_cap:
-                points += 5
-        # Evaluate Orange Cap: 5 points if match
-        if actual_orange_cap:
-            if p.orange_cap.upper() == actual_orange_cap:
-                points += 5
+
+        # Evaluate winner, purple cap, orange cap
+        if actual_winner and p.winner.upper() == actual_winner:
+            points += 5
+
+        if actual_purple_cap and p.purple_cap.upper() == actual_purple_cap:
+            points += 5
+
+        if actual_orange_cap and p.orange_cap.upper() == actual_orange_cap:
+            points += 5
+
+        # ✅ Here's the critical fix:
         p.points = points
         p.hits = hits_league
-        p.misses = 70 - hits_league
+        p.misses = total_games_entered - hits_league  # ✅ dynamic number instead of 70 - hits_league
+
         updated_count += 1
+
     db.session.commit()
+
+    # Save the current actual results
     actual_results_data = {
         "actualResults": actual_results,
         "actualSemifinalists": actual_semifinalists,
@@ -213,8 +274,32 @@ def submit_results():
         "actualPurpleCap": actual_purple_cap,
         "actualOrangeCap": actual_orange_cap
     }
+
     return jsonify({"message": f"Updated points for {updated_count} predictions."}), 200
-# Admin statistics endpoint
+
+
+@app.route("/actual_results", methods=["GET"])
+def get_actual_results():
+    return jsonify(actual_results_data)
+
+@app.route("/leaderboard", methods=["GET"])
+def leaderboard():
+    results = db.session.query(
+        Prediction.name,
+        db.func.sum(Prediction.points).label("total_points"),
+        db.func.sum(Prediction.hits).label("total_hits"),
+        db.func.sum(Prediction.misses).label("total_misses")
+    ).group_by(Prediction.name).order_by(db.func.sum(Prediction.points).desc()).all()
+
+    leaderboard_data = [{
+        "name": r.name,
+        "total_points": r.total_points,
+        "total_hits": r.total_hits,
+        "total_misses": r.total_misses
+    } for r in results]
+
+    return jsonify(leaderboard_data)
+
 @app.route("/admin_stats", methods=["GET"])
 def admin_stats():
     total = Prediction.query.count()
@@ -225,47 +310,17 @@ def admin_stats():
         "total_points": total_points,
         "average_points": avg
     })
-# Endpoint to delete a specific prediction
-@app.route("/delete_prediction/<int:prediction_id>", methods=["DELETE"])
-def delete_prediction(prediction_id):
-    pred = Prediction.query.get(prediction_id)
-    if not pred:
-        return jsonify({"error": "Prediction not found"}), 404
-    db.session.delete(pred)
-    db.session.commit()
-    return jsonify({"message": f"Deleted prediction {prediction_id}."}), 200
-# Leaderboard endpoint (aggregates by name)
-@app.route("/leaderboard", methods=["GET"])
-def leaderboard():
-    results = db.session.query(
-        Prediction.name,
-        db.func.sum(Prediction.points).label("total_points"),
-        db.func.sum(Prediction.hits).label("total_hits"),
-        db.func.sum(Prediction.misses).label("total_misses")
-    ).group_by(Prediction.name).order_by(db.func.sum(Prediction.points).desc()).all()
-    leaderboard_data = [
-        {
-            "name": r.name,
-            "total_points": r.total_points,
-            "total_hits": r.total_hits,
-            "total_misses": r.total_misses
-        } for r in results
-    ]
-    return jsonify(leaderboard_data)
-# Endpoint to get the actual results
-@app.route("/actual_results", methods=["GET"])
-def get_actual_results():
-    return jsonify(actual_results_data)
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    print("Starting Flask server on port", port)
-    app.run(host="0.0.0.0", port=port, debug=True)
 
-@app.route("/debug_predictions")
+@app.route("/debug_predictions", methods=["GET"])
 def debug_predictions():
     predictions = Prediction.query.all()
-    return {
+    return jsonify({
         "total_predictions": len(predictions),
         "predictions": [p.name for p in predictions]
-    }
+    })
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    print(f"Starting Flask server on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=True)
 

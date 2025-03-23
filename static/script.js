@@ -626,7 +626,92 @@
       }
     });
   }
+  function displayComments() {
+    const container = document.getElementById("commentsContainer");
+    if (!container) {
+      console.error("commentsContainer not found!");
+      return;
+    }
   
+    container.innerHTML = `<h2 class="violet-heading">Comments</h2><div>Loading comments...</div>`;
+  
+    fetch("/get_comments")
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to fetch comments");
+        return response.json();
+      })
+      .then(comments => {
+        if (!Array.isArray(comments) || comments.length === 0) {
+          container.innerHTML = `<h2 class="violet-heading">Comments</h2><div>No comments yet.</div>`;
+          return;
+        }
+  
+        let html = `<h2 class="violet-heading">Comments</h2>`;
+        comments.forEach(c => {
+          html += `
+            <div class="comment-item">
+              <div class="comment-meta">
+                <strong class="comment-name">${c.name}</strong> 
+                <span class="comment-time">(${c.created_at})</span>
+              </div>
+              <div class="comment-text">${c.comment}</div>
+            </div>
+          `;
+        });
+  
+        container.innerHTML = html;
+      })
+      .catch(error => {
+        console.error("Error fetching comments:", error);
+        container.innerHTML = `<h2 class="violet-heading">Comments</h2><div>Error loading comments.</div>`;
+      });
+  }
+  
+
+  function showCommentForm() {
+    document.getElementById("main-view").style.display = "none";
+    document.getElementById("comment-form").style.display = "block";
+  }
+  function submitUserComment() {
+    const name = document.getElementById("commentName").value.trim();
+    const comment = document.getElementById("commentText").value.trim();
+  
+    if (!name || !comment) {
+      alert("Please enter both your name and comment.");
+      return;
+    }
+  
+    fetch("/submit_comment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name, comment: comment })
+    })
+      .then(response => {
+        if (!response.ok) {
+          // Extract error from server response
+          return response.json().then(err => {
+            throw new Error(err.error || "Failed to submit comment");
+          });
+        }
+        return response.json();
+      })
+      .then(result => {
+        alert(result.message || "Comment submitted!");
+        
+        // Optionally hide the form and show acknowledgment
+        document.getElementById("comment-form").style.display = "none";
+        document.getElementById("commentAcknowledgment").style.display = "block";
+        
+        // Back to main view after acknowledgment
+        // OR remove showMainView() if you want to stay on acknowledgment
+        showMainView(); 
+        displayComments();  // Refresh the comments section if it's on main view
+      })
+      .catch(error => {
+        console.error("Error submitting comment:", error);
+        alert("Error submitting comment: " + error.message);
+      });
+  }
   
   
   function displayPredictions(){
@@ -966,6 +1051,17 @@
     // Refresh all tables on page load
     displayLeaderboard();
     displayPredictions();
+    const enterCommentBtn = document.getElementById("enterCommentBtn");
+if (enterCommentBtn) {
+  enterCommentBtn.onclick = showCommentForm;
+  console.log("Enter Comment button assigned");
+} else {
+  console.error("Enter Comment button not found.");
+}
+
+// Refresh comments on load
+displayComments();
+
     fetch("/get_predictions")
       .then(response => {
         if (!response.ok) throw new Error("Server response not ok");
@@ -1021,6 +1117,9 @@
   }
   window.showExpertTab = showExpertTab;
   window.showAllPredictionsTab = showAllPredictionsTab;
+  window.showCommentForm = showCommentForm;
+window.submitUserComment = submitUserComment;
+window.displayComments = displayComments;
   window.showPredictionForm = showPredictionForm;
   window.showMainView = showMainView;
   window.submitUserPrediction = submitUserPrediction;
