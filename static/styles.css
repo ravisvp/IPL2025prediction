@@ -600,6 +600,27 @@ table tbody tr:hover {
   margin-left: 10px;
 }
 
+/* General fix for table text alignment */
+#finalsPredictionTable td:first-child,
+#finalsPredictionTable th:first-child,
+#leaderboardTable td:first-child,
+#leaderboardTable th:first-child {
+  text-align: left;      /* Align text to the left */
+  padding-left: 15px;    /* Add padding to create space from the border */
+}
+
+/* Optional: Reduce extra padding on mobile */
+@media (max-width: 600px) {
+  #finalsPredictionTable td:first-child,
+  #finalsPredictionTable th:first-child,
+  #leaderboardTable td:first-child,
+  #leaderboardTable th:first-child {
+    padding-left: 10px;
+    font-size: 0.9em;  /* Slightly reduce font size for mobile */
+  }
+}
+
+
 
 
 
