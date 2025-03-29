@@ -346,15 +346,30 @@
         leaderboard.forEach((entry, idx) => {
           const row = document.createElement("tr");
   
-          // Add ranking number next to user name
           const rankNumber = idx + 1;
           const displayName = entry.name ? entry.name : "User";
+  
           const nameCell = document.createElement("td");
-          nameCell.textContent = `${rankNumber}. ${displayName}`;
+  
+          // ⭐️ Add trophy/star icons dynamically for top 3 ranks
+          let icon = "";
+          if (idx === 0) {
+            icon = "🏆 "; // Gold Trophy
+            row.classList.add("top-predictor");
+          } else if (idx === 1) {
+            icon = "🥈 "; // Silver Medal
+            row.classList.add("second-predictor");
+          } else if (idx === 2) {
+            icon = "🥉 "; // Bronze Medal
+            row.classList.add("third-predictor");
+          }
+  
+          nameCell.innerHTML = `${rankNumber}. ${icon}${displayName}`;
           nameCell.style.backgroundColor = nameCellBgColor;
           nameCell.style.color = nameCellTextColor;
           nameCell.style.fontWeight = "bold";
           nameCell.style.whiteSpace = "nowrap";
+  
           row.appendChild(nameCell);
   
           const pointsCell = document.createElement("td");
@@ -389,6 +404,7 @@
       tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
     });
   }
+  
   
   
   // ----- Detailed Predictions Display -----
