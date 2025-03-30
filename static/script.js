@@ -326,84 +326,143 @@
   
   function displayLeaderboard() {
     const tableBody = document.getElementById("leaderboardTable").getElementsByTagName("tbody")[0];
+    const streakContainer = document.getElementById("streakStats");
     tableBody.innerHTML = "";
+    if (streakContainer) streakContainer.innerHTML = "";
   
     Promise.all([
-      fetch("/leaderboard").then(r => {
-        if (!r.ok) throw new Error("Failed to fetch leaderboard data");
+      fetch("/get_predictions").then(r => {
+        if (!r.ok) throw new Error("Failed to fetch predictions");
         return r.json();
       }),
       fetch("/actual_results").then(r => r.json())
-    ]).then(([leaderboard, actualData]) => {
-      let gamesCompleted = 0;
-      if (actualData && actualData.actualResults) {
-        gamesCompleted = actualData.actualResults.length;
-      }
+    ])
+      .then(([predictions, actualData]) => {
+        let gamesCompleted = actualData?.actualResults?.length || 0;
+        let topHitStreak = { name: "", streak: 0 };
+        let topMissStreak = { name: "", streak: 0 };
   
-      if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
-      } else {
-        leaderboard.forEach((entry, idx) => {
-          const row = document.createElement("tr");
+        predictions.forEach(pred => {
+          let maxHit = 0, maxMiss = 0, curHit = 0, curMiss = 0;
+          const actual = actualData?.actualResults || [];
+          const userPreds = Array.isArray(pred.predictions)
+            ? pred.predictions
+            : JSON.parse(pred.predictions || "[]");
   
-          const rankNumber = idx + 1;
-          const displayName = entry.name ? entry.name : "User";
+          for (let i = 0; i < actual.length; i++) {
+            const predicted = userPreds[i]?.toUpperCase();
+            const correct = actual[i]?.toUpperCase();
   
-          const nameCell = document.createElement("td");
-  
-          // ⭐️ Add trophy/star icons dynamically for top 3 ranks
-          let icon = "";
-          if (idx === 0) {
-            icon = "🏆 "; // Gold Trophy
-            row.classList.add("top-predictor");
-          } else if (idx === 1) {
-            icon = "🥈 "; // Silver Medal
-            row.classList.add("second-predictor");
-          } else if (idx === 2) {
-            icon = "🥉 "; // Bronze Medal
-            row.classList.add("third-predictor");
+            if (predicted === correct) {
+              curHit++;
+              maxHit = Math.max(maxHit, curHit);
+              curMiss = 0;
+            } else {
+              curMiss++;
+              maxMiss = Math.max(maxMiss, curMiss);
+              curHit = 0;
+            }
           }
   
-          nameCell.innerHTML = `${rankNumber}. ${icon}${displayName}`;
-          nameCell.style.backgroundColor = nameCellBgColor;
-          nameCell.style.color = nameCellTextColor;
-          nameCell.style.fontWeight = "bold";
-          nameCell.style.whiteSpace = "nowrap";
-  
-          row.appendChild(nameCell);
-  
-          const pointsCell = document.createElement("td");
-          pointsCell.textContent = entry.total_points !== undefined ? entry.total_points : 0;
-          pointsCell.style.backgroundColor = (!isNaN(entry.total_points) && entry.total_points > 0) ? "#008000" : "#2f2f2f";
-          pointsCell.style.color = "#fff";
-          row.appendChild(pointsCell);
-  
-          const hitsCell = document.createElement("td");
-          hitsCell.textContent = entry.total_hits !== undefined ? entry.total_hits : 0;
-          hitsCell.style.backgroundColor = (!isNaN(entry.total_hits) && entry.total_hits > 0) ? "#008000" : "#2f2f2f";
-          hitsCell.style.color = "#fff";
-          row.appendChild(hitsCell);
-  
-          const missesCell = document.createElement("td");
-          missesCell.textContent = entry.total_misses !== undefined ? entry.total_misses : 0;
-          missesCell.style.backgroundColor = (!isNaN(entry.total_misses) && entry.total_misses > 0) ? "#B22222" : "#2f2f2f";
-          missesCell.style.color = "#fff";
-          row.appendChild(missesCell);
-  
-          const gamesCompletedCell = document.createElement("td");
-          gamesCompletedCell.textContent = gamesCompleted;
-          gamesCompletedCell.style.backgroundColor = "#2f2f2f";
-          gamesCompletedCell.style.color = "#fff";
-          row.appendChild(gamesCompletedCell);
-  
-          tableBody.appendChild(row);
+          if (maxHit > topHitStreak.streak) {
+            topHitStreak = { name: pred.name, streak: maxHit };
+          }
+          if (maxMiss > topMissStreak.streak) {
+            topMissStreak = { name: pred.name, streak: maxMiss };
+          }
         });
-      }
-    }).catch(error => {
-      console.error("Error fetching leaderboard or actual results:", error);
-      tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
-    });
+  
+        if (streakContainer) {
+          setTimeout(() => {
+            streakContainer.innerHTML = `
+              <div class="streak-box hit-glow">
+                <span class="emoji">🔥</span>Longest Hit Streak: <strong>${topHitStreak.name}</strong> (${topHitStreak.streak} in a row)
+              </div>
+              <div class="streak-box miss-glow">
+                <span class="emoji">💀</span>Longest Miss Streak: <strong>${topMissStreak.name}</strong> (${topMissStreak.streak} in a row)
+              </div>
+            `;
+          }, 3000);
+        }
+  
+        // Leaderboard
+        fetch("/leaderboard")
+          .then(r => r.json())
+          .then(leaderboard => {
+            if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+              tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
+            } else {
+              leaderboard.forEach((entry, idx) => {
+                const row = document.createElement("tr");
+                const rankNumber = idx + 1;
+                const displayName = entry.name || "User";
+  
+                // 🎖️ Add emoji + glow text classes
+                const nameCell = document.createElement("td");
+                let icon = "";
+                if (idx === 0) {
+                  icon = "🏆 ";
+                  nameCell.classList.add("top-predictor");
+                  row.classList.add("top-rank-gold");
+                } else if (idx === 1) {
+                  icon = "🥈 ";
+                  nameCell.classList.add("second-predictor");
+                  row.classList.add("top-rank-silver");
+                } else if (idx === 2) {
+                  icon = "🥉 ";
+                  nameCell.classList.add("third-predictor");
+                  row.classList.add("top-rank-bronze");
+                }
+                else {
+                  row.classList.add("leaderboard-row");  // ✅ add this for non-top-3
+                }
+  
+                nameCell.innerHTML = `${rankNumber}. ${icon}${displayName}`;
+                if (idx > 2) {
+                  nameCell.classList.add("regular-predictor");
+                }
+                
+            
+                nameCell.style.color = "#000";
+                nameCell.style.fontWeight = "bold";
+                nameCell.style.whiteSpace = "nowrap";
+                row.appendChild(nameCell);
+  
+                const pointsCell = document.createElement("td");
+                pointsCell.textContent = entry.total_points ?? 0;
+                pointsCell.style.backgroundColor = pointsCell.textContent > 0 ? "#008000" : "#2f2f2f";
+                pointsCell.style.color = "#fff";
+                row.appendChild(pointsCell);
+  
+                const hitsCell = document.createElement("td");
+                hitsCell.textContent = entry.total_hits ?? 0;
+                hitsCell.style.backgroundColor = hitsCell.textContent > 0 ? "#008000" : "#2f2f2f";
+                hitsCell.style.color = "#fff";
+                row.appendChild(hitsCell);
+  
+                const missesCell = document.createElement("td");
+                missesCell.textContent = entry.total_misses ?? 0;
+                missesCell.style.backgroundColor = missesCell.textContent > 0 ? "#B22222" : "#2f2f2f";
+                missesCell.style.color = "#fff";
+                row.appendChild(missesCell);
+  
+                const gamesCompletedCell = document.createElement("td");
+                gamesCompletedCell.textContent = gamesCompleted;
+                gamesCompletedCell.style.backgroundColor = "#2f2f2f";
+                gamesCompletedCell.style.color = "#fff";
+                row.appendChild(gamesCompletedCell);
+  
+                tableBody.appendChild(row);
+              });
+            }
+          });
+      })
+      .catch(error => {
+        console.error("Error fetching data:", error);
+        tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
+      });
   }
+  
   
   
   
@@ -688,7 +747,6 @@
       });
   }
   
-
   function showCommentForm() {
     document.getElementById("main-view").style.display = "none";
     document.getElementById("comment-form").style.display = "block";
@@ -1059,7 +1117,6 @@
       });
   }
   
-
   // ----- Attach Event Listeners and Expose Functions -----
   window.addEventListener("load", function(){
     const enterBtn = document.getElementById("enterPredictionBtn");
@@ -1079,10 +1136,8 @@ if (enterCommentBtn) {
 } else {
   console.error("Enter Comment button not found.");
 }
-
 // Refresh comments on load
 displayComments();
-
     fetch("/get_predictions")
       .then(response => {
         if (!response.ok) throw new Error("Server response not ok");

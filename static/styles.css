@@ -256,7 +256,6 @@ table tbody tr:hover {
   margin-bottom: 10px;
 }
 /* New Header Classes for Finals Prediction Table */
-
 .rank-header {
   background-color: #FFA07A;
   color: #000;
@@ -471,7 +470,6 @@ table tbody tr:hover {
   text-align: left;
   font-size: 0.95rem;
 }
-
 /* Statistics Container */
 #statisticsContainer {
   margin-bottom: 40px;
@@ -483,7 +481,6 @@ table tbody tr:hover {
   padding: 20px;
 }
 
-
 /* Statistics Header */
 #statisticsContainer h2 {
   text-align: center;
@@ -491,14 +488,12 @@ table tbody tr:hover {
   font-size: 1.5em;
   color: #333;
 }
-
 /* Statistics Table */
 #statisticsTable th,
 #statisticsTable td {
   padding: 8px 12px;
   text-align: center;
 }
-
 /* Chart Container */
 .chart-container {
   width: 100%;
@@ -507,7 +502,6 @@ table tbody tr:hover {
   padding: 0 10px;
   box-sizing: border-box;
 }
-
 /* Chart Header (Above each graph) */
 .chart-header {
   background-color: #4b0082; /* Dark violet */
@@ -520,7 +514,6 @@ table tbody tr:hover {
   margin-bottom: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
-
 /* Chart Canvas (the actual chart) */
 .chart-container canvas {
   width: 100% !important;
@@ -529,36 +522,30 @@ table tbody tr:hover {
   margin: 0 auto;
   max-height: 400px; /* Limit height for consistency */
 }
-
 /* Responsive Tweaks for Mobile */
 @media (max-width: 600px) {
   .chart-container {
     padding: 0 5px;
   }
-
   .chart-header {
     font-size: 1em;
     padding: 10px 12px;
   }
-
   .chart-container canvas {
     max-height: 300px; /* Shorter height for smaller screens */
   }
 }
-
 
 /* Mobile Friendly Tweaks */
 @media (max-width: 600px) {
   .chart-container {
     padding: 0 5px;
   }
-
   .chart-header {
     font-size: 1em;
     padding: 10px 12px;
   }
 }
-
 
 /* COMMENTS CONTAINER STYLING */
 .comments-container {
@@ -571,7 +558,6 @@ table tbody tr:hover {
   margin-left: auto;
   margin-right: auto;
 }
-
 .comments-container h2 {
   margin-bottom: 15px;
   color: #ffffff;
@@ -579,7 +565,6 @@ table tbody tr:hover {
   font-weight: bold;
   text-align: center;
 }
-
 .comment-item {
   margin-bottom: 15px;
   padding: 10px;
@@ -588,18 +573,15 @@ table tbody tr:hover {
   font-size: 16px;
   line-height: 1.4;
 }
-
 .comment-item strong {
   color: #FFD700; /* Gold color for the name */
   font-weight: bold;
 }
-
 .comment-item time {
   font-size: 12px;
   color: #ccc;
   margin-left: 10px;
 }
-
 /* General fix for table text alignment */
 #finalsPredictionTable td:first-child,
 #finalsPredictionTable th:first-child,
@@ -608,7 +590,6 @@ table tbody tr:hover {
   text-align: left;      /* Align text to the left */
   padding-left: 15px;    /* Add padding to create space from the border */
 }
-
 /* Optional: Reduce extra padding on mobile */
 @media (max-width: 600px) {
   #finalsPredictionTable td:first-child,
@@ -621,13 +602,11 @@ table tbody tr:hover {
 }
 
 
-
 #statisticsContainer {
   display: flex;
   flex-direction: column;
   align-items: center; /* Center contents horizontally */
 }
-
 h2.statistics-title {
   background-color: #4b0082 !important;  /* Dark violet */
   color: #ffffff !important;             /* Force white text */
@@ -639,9 +618,7 @@ h2.statistics-title {
   margin-bottom: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
-
 /* Glow effect for Top 3 Predictors */
-
 /* Top Rank Styles */
 .top-predictor {
   color: #ffd700;
@@ -649,17 +626,14 @@ h2.statistics-title {
   text-shadow: 0 0 8px #ffd700, 0 0 16px #ffa500;
   animation: pulseGlow 1.5s infinite;
 }
-
 .second-predictor {
   color: #c0c0c0;
   font-weight: bold;
 }
-
 .third-predictor {
   color: #cd7f32;
   font-weight: bold;
 }
-
 @keyframes pulseGlow {
   0% {
     text-shadow: 0 0 5px #ffd700, 0 0 10px #ffa500;
@@ -671,5 +645,157 @@ h2.statistics-title {
     text-shadow: 0 0 5px #ffd700, 0 0 10px #ffa500;
   }
 }
+.top-rank-gold {
+  background: linear-gradient(90deg, #FFD700, #FFEF8B);
+}
+.top-rank-silver {
+  background: linear-gradient(90deg, #C0C0C0, #E0E0E0);
+}
+.top-rank-bronze {
+  background: linear-gradient(90deg, #CD7F32, #E6B57E);
+}
+
+.scoreboard-streaks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  margin-top: 20px;  /* Add space between "EXPERT RANKINGS" and streaks */
+  padding: 10px;
+}
+.streak-box {
+  background-color: #4b0082;  /* Violet */
+  color: white;
+  font-weight: bold;
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  font-size: 1em;
+  border: 2px solid white;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeSlideIn 0.6s ease-out forwards;
+}
+
+
+.streak-label {
+  color: #FFD700;
+  margin-right: 8px;
+}
+.streak-value {
+  font-size: 1.1em;
+  color: #fff;
+}
+/* 🔥 Enhanced Streak Display Styling */
+#streakStats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 15px auto 25px auto;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+.streak-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 8px 18px;
+  margin: 6px 0;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255,255,255,0.15);
+  font-family: 'Segoe UI', sans-serif;
+  backdrop-filter: blur(4px);
+}
+.streak-badge span.emoji {
+  font-size: 1.3em;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* 🔥 Pulsing glow for Longest Hit Streak */
+.streak-box.hit-glow {
+  box-shadow: 0 0 10px #ffd700, 0 0 20px #ff9900;
+  border: 2px solid #ffd700;
+  /* Run fadeSlideIn then pulseGlowHit continuously */
+  animation: 
+    fadeSlideIn 0.6s ease-out forwards,      /* fade in from transparent */
+    pulseGlowHit 1.5s infinite ease-in-out 0.6s;  /* start pulsing after 0.6s */
+}
+@keyframes pulseGlowHit {
+  0% {
+    box-shadow: 0 0 10px #ffd700, 0 0 20px #ff9900;
+  }
+  50% {
+    box-shadow: 0 0 30px #ffd700, 0 0 60px #ffa500;
+  }
+  100% {
+    box-shadow: 0 0 10px #ffd700, 0 0 20px #ff9900;
+  }
+}
+/* 💀 Pulsing red glow for Longest Miss Streak */
+.streak-box.miss-glow {
+  box-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff1a1a;
+  animation: 
+    fadeSlideIn 0.6s ease-out forwards,    /* fade in */
+    pulseGlowMiss 1.5s infinite ease-in-out 0.6s; /* red glow after fade */
+  border: 2px solid #ff4d4d;
+}
+@keyframes pulseGlowMiss {
+  0% {
+    box-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff1a1a;
+  }
+  50% {
+    box-shadow: 0 0 30px #ff4d4d, 0 0 60px #cc0000;
+  }
+  100% {
+    box-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff1a1a;
+  }
+}
+
+/* 🥇 First Place - Gold Gradient */
+tr.top-predictor td:first-child {
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  color: #000;
+  font-weight: bold;
+  border-radius: 8px;
+}
+/* 🥈 Second Place - Silver Gradient */
+tr.second-predictor td:first-child {
+  background: linear-gradient(90deg, #C0C0C0, #E0E0E0);
+  color: #000;
+  font-weight: bold;
+  border-radius: 8px;
+}
+/* 🥉 Third Place - Bronze Gradient */
+tr.third-predictor td:first-child {
+  background: linear-gradient(90deg, #CD7F32, #B87333);
+  color: #fff;
+  font-weight: bold;
+  border-radius: 8px;
+}
+/* ✨ Style for regular (non-top-3) leaderboard name cells */
+.leaderboard-row td:first-child {
+  background: linear-gradient(to right, #f0f0f0, #e8e8ff); /* soft gray-violet gradient */
+  color: #333;
+  font-weight: 500;
+  border-radius: 6px;
+}
+/* Regular (non-top3) background for leaderboard names */
+.regular-predictor {
+  background: #f0f0f0; /* Light neutral background */
+  color: #000;
+}
+
 
 
