@@ -1,3 +1,5 @@
+
+
 (function(){
   // ----- Data and Utility Functions -----
   const gamesList = [
@@ -72,6 +74,9 @@
     "CSK vs GT",
     "SRH vs LSG"
   ];
+
+  window.gamesList = gamesList;
+
   const numGames = gamesList.length;
   const teamsList = ["RCB", "KKR", "MI", "CSK", "RR", "SRH", "LSG", "DC", "PBKS", "GT"];
   const teamColors = {
@@ -86,6 +91,9 @@
     PBKS: "#8E244D",
     GT: "#FF6F00"
   };
+  window.teamColors = teamColors;
+
+
   // Uniform styling for name cells in display tables
   const nameCellBgColor = "#e0d4f5"; // light violet
   const nameCellTextColor = "#000";
@@ -418,6 +426,7 @@
                 }
   
                 nameCell.innerHTML = `${rankNumber}. ${icon}${displayName}`;
+
                 if (idx > 2) {
                   nameCell.classList.add("regular-predictor");
                 }
@@ -747,6 +756,7 @@
       });
   }
   
+
   function showCommentForm() {
     document.getElementById("main-view").style.display = "none";
     document.getElementById("comment-form").style.display = "block";
@@ -1117,6 +1127,7 @@
       });
   }
   
+
   // ----- Attach Event Listeners and Expose Functions -----
   window.addEventListener("load", function(){
     const enterBtn = document.getElementById("enterPredictionBtn");
@@ -1136,8 +1147,10 @@ if (enterCommentBtn) {
 } else {
   console.error("Enter Comment button not found.");
 }
+
 // Refresh comments on load
 displayComments();
+
     fetch("/get_predictions")
       .then(response => {
         if (!response.ok) throw new Error("Server response not ok");
@@ -1202,6 +1215,77 @@ window.displayComments = displayComments;
   window.displayFinalsPredictions = displayFinalsPredictions;
   window.displayPredictions = displayPredictions;
 })();
+
+
+function displayUpcomingGamePredictions() {
+  console.log("✅ displayUpcomingGamePredictions triggered");
+  fetch("/get_predictions")
+    .then(response => response.json())
+    .then(predictions => {
+      return fetch("/actual_results")
+        .then(res => res.json())
+        .then(actualData => {
+          const actualResults = actualData.actualResults || [];
+          const upcomingGameIndex = actualResults.length;
+
+          const container = document.getElementById("upcomingPredictionTableContainer");
+          if (upcomingGameIndex >= gamesList.length) {
+            container.innerHTML = "<p>No upcoming games left.</p>";
+            return;
+          }
+
+          const gameName = gamesList[upcomingGameIndex];
+
+          let html = `
+            <div class="scrollable-table-wrapper">
+              <table id="upcomingGameTable">
+                <thead>
+                  <tr>
+                    <th class="sticky-left-col">Game ${upcomingGameIndex + 1}: ${gameName}</th>
+          `;
+
+          predictions.forEach(pred => {
+            html += `<th>${pred.name || "User"}</th>`;
+          });
+
+          html += `
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sticky-left-col">Prediction</td>
+          `;
+
+          predictions.forEach(pred => {
+            const preds = Array.isArray(pred.predictions) ? pred.predictions : JSON.parse(pred.predictions || "[]");
+            const prediction = (preds[upcomingGameIndex] || "-").toUpperCase();
+            const bgColor = teamColors[prediction] || "#ddd";
+            html += `<td style="background-color:${bgColor}; color:#000; font-weight:bold;">${prediction}</td>`;
+          });
+
+          html += `
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          `;
+
+          container.innerHTML = html;
+        });
+    })
+    .catch(err => {
+      console.error("Error loading upcoming game predictions", err);
+    });
+}
+
+
+
+// Ensure upcoming predictions display on load
+window.addEventListener('load', function() {
+  if (document.getElementById("upcomingPredictionTableContainer")) {
+    displayUpcomingGamePredictions();
+  }
+});
 
 
 

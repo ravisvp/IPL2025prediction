@@ -6,7 +6,9 @@
   <link rel="stylesheet" href="styles.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
+
 <body>
+
   <!-- Hero/Header Section -->
   <header class="hero">
     <div class="hero-overlay"></div>
@@ -15,34 +17,42 @@
       <p>Predict the outcomes and see who reigns supreme!</p>
     </div>
   </header>
+
   <!-- Main View Container -->
   <div class="container fade-in" id="main-view">
+
     <!-- Buttons -->
     <button id="enterPredictionBtn" class="action-btn">Enter Predictions</button>
     <button id="enterCommentBtn" class="action-btn">Enter Comment</button>
+
     <!-- Tabs for switching views -->
     <div class="tabs">
       <button id="tab-expert" class="tab" onclick="showExpertTab()">Expert Predictions</button>
       <button id="tab-all" class="tab" onclick="showAllPredictionsTab()">View Predictions</button>
     </div>
+
     <!-- Statistics Section -->
     <div id="statisticsContainer" class="table-scroll">
       <h2 class="statistics-title">Prediction Statistics</h2>
+
 
 
       <div class="chart-container">
         <div class="chart-header violet-header">Winner Predictions</div>
         <canvas id="winnerChart"></canvas>
       </div>
+
       <div class="chart-container">
         <div class="chart-header violet-header">Purple Cap Predictions</div>
         <canvas id="purpleCapChart"></canvas>
       </div>
+
       <div class="chart-container">
         <div class="chart-header violet-header">Orange Cap Predictions</div>
         <canvas id="orangeCapChart"></canvas>
       </div>
     </div>
+
     <!-- Playoffs/Finals, Winner & Cap Predictions Table -->
     <div id="finalsPredictionContainer">
       <div class="table-scroll">
@@ -68,14 +78,24 @@
         </table>
       </div>
     </div>
+
     <div id="streakStats" class="scoreboard-streaks"></div>
+
     <!-- Expert Leaderboard -->
-    <div id="scoreboardContainer" class="scoreboard-container">
+    
+<!-- Upcoming Game Predictions Table -->
+<div id="upcomingGamePredictionsContainer" class="table-scroll" style="margin-bottom: 20px;">
+  <h2 class="violet-heading">Upcoming Game Predictions</h2>
+  <div class="scrollable-table-wrapper"></div>
+  <div id="upcomingPredictionTableContainer"></div>
+</div>
+<div id="scoreboardContainer" class="scoreboard-container">
       <div class="scoreboard-header">
         <div class="scoreboard-title">EXPERT RANKINGS</div>
         <div class="scoreboard-subtitle">IN IPL 2025</div>
       </div>
       
+
 
       <div class="table-scroll">
         <table id="leaderboardTable" class="scoreboard-table">
@@ -92,6 +112,7 @@
         </table>
       </div>
     </div>
+
     <!-- All Predictions Section (hidden by default) -->
     <div id="allPredictionsContainer" style="display: none;">
       <h2>All Predictions</h2>
@@ -103,14 +124,18 @@
       </div>
       <button class="action-btn" onclick="showExpertTab()">Back to Expert Predictions</button>
     </div>
+
     <!-- ✅ Comments Display Section -->
     <div id="commentsContainer" class="comments-container">
       <h2 class="violet-heading">Comments from Predictors</h2>
       <!-- Comments will be dynamically inserted here -->
     </div>
+
   </div> <!-- End of main-view -->
+
   <!-- Prediction Form View (hidden by default) -->
   <div class="container fade-in" id="prediction-form" style="display: none;">
+
     <!-- Competition Rules Section -->
     <div class="rules-section">
       <table class="rules-table">
@@ -138,12 +163,15 @@
         </tr>
       </table>
     </div>
+
     <h2 class="violet-heading" id="enterPredictionTitle">Enter Your Prediction</h2>
     <form id="userPredictionForm">
       <label for="name" class="violet-label">Your Name (or Nickname):</label>
       <input type="text" id="name" required />
       <br /><br />
+
       <div id="gamePredictionsContainer"></div>
+
       <h3 class="violet-heading-sub">Choose Your Playoff Teams by Rank:</h3>
       <div id="rank1Section" class="rank-section">
         <div class="rank-header">RANK 1</div>
@@ -161,23 +189,31 @@
         <div class="rank-header">RANK 4</div>
         <div id="rank4Container" class="rank-container"></div>
       </div>
+
       <h3 class="violet-heading-sub">Choose Your 2 Finalists</h3>
       <div id="finalistContainer"></div>
+
       <h3 class="violet-heading-sub">Choose Your Winner</h3>
       <div id="winnerContainer"></div>
+
       <label for="purple_cap" class="violet-label">Purple Cap Winner:</label>
       <input type="text" id="purple_cap" required />
       <br /><br />
+
       <label for="orange_cap" class="violet-label">Orange Cap Winner:</label>
       <input type="text" id="orange_cap" required />
       <br /><br />
+
       <button type="button" class="action-btn" onclick="submitUserPrediction()">Submit Prediction</button>
     </form>
+
     <div id="acknowledgment" class="ticker" style="display: none;">
       <div class="ticker-message">YOUR PREDICTION HAS BEEN SUCCESSFULLY SUBMITTED!</div>
       <button class="action-btn" onclick="showMainView()">Take me back to main page</button>
     </div>
+
   </div>
+
   <!-- ✅ Comment Form View (hidden by default) -->
   <div class="container fade-in" id="comment-form" style="display: none;">
     <h2 class="violet-heading">Leave a Comment</h2>
@@ -185,20 +221,25 @@
       <label for="commentName" class="violet-label">Your Name:</label>
       <input type="text" id="commentName" required />
       <br /><br />
+
       <label for="commentText" class="violet-label">Your Comment:</label>
       <textarea id="commentText" required></textarea>
       <br /><br />
+
       <button type="button" class="action-btn" onclick="submitUserComment()">Submit Comment</button>
     </form>
+
     <div id="commentAcknowledgment" class="ticker" style="display: none;">
       <div class="ticker-message">YOUR COMMENT HAS BEEN SUBMITTED!</div>
       <button class="action-btn" onclick="showMainView()">Take me back to main page</button>
     </div>
   </div>
+
   <!-- Script References -->
   <script src="user_prediction_script.js"></script>
   <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </body>
 </html>
 

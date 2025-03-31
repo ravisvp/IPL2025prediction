@@ -319,8 +319,31 @@ def debug_predictions():
         "predictions": [p.name for p in predictions]
     })
 
+
+@app.route("/next_game_predictions", methods=["GET"])
+def next_game_predictions():
+    from sqlalchemy import func
+
+    actual_count = len(actual_results_data.get("actualResults", []))
+    next_game_index = actual_count  # zero-based index
+    all_preds = Prediction.query.all()
+
+    user_predictions = []
+    for p in all_preds:
+        try:
+            game_preds = json.loads(p.predictions)
+            prediction = game_preds[next_game_index] if next_game_index < len(game_preds) else ""
+        except:
+            prediction = ""
+        user_predictions.append({"name": p.name, "prediction": prediction})
+
+    return jsonify({
+        "next_game_number": next_game_index + 1,
+        "predictions": user_predictions
+    })
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"Starting Flask server on port {port}")
     app.run(host="0.0.0.0", port=port, debug=True)
-
