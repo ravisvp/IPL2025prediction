@@ -1,5 +1,3 @@
-
-
 (function(){
   // ----- Data and Utility Functions -----
   const gamesList = [
@@ -1219,64 +1217,82 @@ window.displayComments = displayComments;
 
 function displayUpcomingGamePredictions() {
   console.log("✅ displayUpcomingGamePredictions triggered");
-  fetch("/get_predictions")
-    .then(response => response.json())
-    .then(predictions => {
-      return fetch("/actual_results")
-        .then(res => res.json())
-        .then(actualData => {
-          const actualResults = actualData.actualResults || [];
-          const upcomingGameIndex = actualResults.length;
 
-          const container = document.getElementById("upcomingPredictionTableContainer");
-          if (upcomingGameIndex >= gamesList.length) {
-            container.innerHTML = "<p>No upcoming games left.</p>";
-            return;
-          }
+  Promise.all([
+    fetch("/leaderboard").then(r => r.json()),
+    fetch("/get_predictions").then(r => r.json()),
+    fetch("/actual_results").then(r => r.json())
+  ])
+    .then(([leaderboard, predictions, actualData]) => {
+      // Build a rank map from the leaderboard (lower index means higher rank)
+      const rankMap = {};
+      leaderboard.forEach((entry, index) => {
+        rankMap[entry.name] = index;
+      });
 
-          const gameName = gamesList[upcomingGameIndex];
+      // Sort predictions based on the rank in leaderboard (if not found, default to Infinity)
+      predictions.sort((a, b) => {
+        const rankA = rankMap[a.name] !== undefined ? rankMap[a.name] : Infinity;
+        const rankB = rankMap[b.name] !== undefined ? rankMap[b.name] : Infinity;
+        return rankA - rankB;
+      });
 
-          let html = `
-            <div class="scrollable-table-wrapper">
-              <table id="upcomingGameTable">
-                <thead>
-                  <tr>
-                    <th class="sticky-left-col">Game ${upcomingGameIndex + 1}: ${gameName}</th>
-          `;
+      // Determine the upcoming game index using actual results
+      const actualResults = actualData.actualResults || [];
+      const upcomingGameIndex = actualResults.length;
+      const container = document.getElementById("upcomingPredictionTableContainer");
 
-          predictions.forEach(pred => {
-            html += `<th>${pred.name || "User"}</th>`;
-          });
+      if (upcomingGameIndex >= gamesList.length) {
+        container.innerHTML = "<p>No upcoming games left.</p>";
+        return;
+      }
 
-          html += `
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="sticky-left-col">Prediction</td>
-          `;
+      const gameName = gamesList[upcomingGameIndex];
+      let html = `
+        <div class="scrollable-table-wrapper">
+          <table id="upcomingGameTable">
+            <thead>
+              <tr>
+                <th class="sticky-left-col">Game ${upcomingGameIndex + 1}: ${gameName}</th>
+      `;
 
-          predictions.forEach(pred => {
-            const preds = Array.isArray(pred.predictions) ? pred.predictions : JSON.parse(pred.predictions || "[]");
-            const prediction = (preds[upcomingGameIndex] || "-").toUpperCase();
-            const bgColor = teamColors[prediction] || "#ddd";
-            html += `<td style="background-color:${bgColor}; color:#000; font-weight:bold;">${prediction}</td>`;
-          });
+      // Build table header with predictor names sorted by rank
+      predictions.forEach(pred => {
+        html += `<th>${pred.name || "User"}</th>`;
+      });
 
-          html += `
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          `;
+      html += `
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="sticky-left-col">Prediction</td>
+      `;
 
-          container.innerHTML = html;
-        });
+      // Build the row for each user's upcoming game prediction in sorted order
+      predictions.forEach(pred => {
+        const preds = Array.isArray(pred.predictions)
+          ? pred.predictions
+          : JSON.parse(pred.predictions || "[]");
+        const prediction = (preds[upcomingGameIndex] || "-").toUpperCase();
+        const bgColor = teamColors[prediction] || "#ddd";
+        html += `<td style="background-color:${bgColor}; color:#000; font-weight:bold;">${prediction}</td>`;
+      });
+
+      html += `
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      container.innerHTML = html;
     })
     .catch(err => {
       console.error("Error loading upcoming game predictions", err);
     });
 }
+
 
 
 
@@ -1286,6 +1302,7 @@ window.addEventListener('load', function() {
     displayUpcomingGamePredictions();
   }
 });
+
 
 
 
