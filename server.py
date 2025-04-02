@@ -192,6 +192,10 @@ def submit_results():
     actual_purple_cap = data.get("actualPurpleCap") or ""
     actual_orange_cap = data.get("actualOrangeCap") or ""
 
+    # NEW: Get the actual stats for purple and orange cap predictions (a JSON string/dict)
+    actual_purple_cap_stats = data.get("actualPurpleCapStats") or "{}"
+    actual_orange_cap_stats = data.get("actualOrangeCapStats") or "{}"
+
     # Normalize to uppercase for comparison
     actual_results = [x.upper() for x in actual_results]
     actual_semifinalists = [x.upper() for x in actual_semifinalists]
@@ -199,6 +203,17 @@ def submit_results():
     actual_winner = actual_winner.upper()
     actual_purple_cap = actual_purple_cap.upper()
     actual_orange_cap = actual_orange_cap.upper()
+
+    # Parse stats JSON strings
+    try:
+        purple_stats = json.loads(actual_purple_cap_stats)
+    except Exception:
+        purple_stats = {}
+
+    try:
+        orange_stats = json.loads(actual_orange_cap_stats)
+    except Exception:
+        orange_stats = {}
 
     preds = Prediction.query.all()
     updated_count = 0
@@ -256,26 +271,29 @@ def submit_results():
         if actual_orange_cap and p.orange_cap.upper() == actual_orange_cap:
             points += 5
 
-        # ✅ Here's the critical fix:
+        # Update the prediction record
         p.points = points
         p.hits = hits_league
-        p.misses = total_games_entered - hits_league  # ✅ dynamic number instead of 70 - hits_league
+        p.misses = total_games_entered - hits_league  # dynamic number instead of 70 - hits_league
 
         updated_count += 1
 
     db.session.commit()
 
-    # Save the current actual results
+    # Save the current actual results with parsed stats
     actual_results_data = {
         "actualResults": actual_results,
         "actualSemifinalists": actual_semifinalists,
         "actualFinalists": actual_finalists,
         "actualWinner": actual_winner,
         "actualPurpleCap": actual_purple_cap,
-        "actualOrangeCap": actual_orange_cap
+        "actualOrangeCap": actual_orange_cap,
+        "actualPurpleCapStats": purple_stats,
+        "actualOrangeCapStats": orange_stats
     }
 
     return jsonify({"message": f"Updated points for {updated_count} predictions."}), 200
+
 
 
 @app.route("/actual_results", methods=["GET"])

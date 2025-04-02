@@ -513,18 +513,25 @@
     header.appendChild(row);
   }
   function createBarChart(ctx, chartLabel, dataCounts, useTeamColors = false, defaultColor = "#CCCCCC") {
-    const sortedEntries = Object.entries(dataCounts).sort((a, b) => b[1] - a[1]);
+    // If a chart instance exists on this canvas, destroy it first
+    if (ctx.canvas.chartInstance) {
+      ctx.canvas.chartInstance.destroy();
+    }
   
+    const sortedEntries = Object.entries(dataCounts).sort((a, b) => b[1] - a[1]);
     const labels = sortedEntries.map(entry => entry[0]);
     const data = sortedEntries.map(entry => entry[1]);
-  
     const backgroundColors = useTeamColors
       ? labels.map(team => teamColors[team] || defaultColor)
       : labels.map(() => defaultColor);
-  
+
+  // Example: A dark gray background color behind the chart
+      ctx.canvas.style.backgroundColor = "#1a1a1a"; // or #2f2f2f, etc.
+
     const isMobile = window.innerWidth < 600;
   
-    new Chart(ctx, {
+    // Create new chart instance
+    const newChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
@@ -532,7 +539,7 @@
           label: chartLabel,
           data: data,
           backgroundColor: backgroundColors,
-          borderColor: '#333',
+          borderColor: '#000', // black or something that stands out
           borderWidth: 1
         }]
       },
@@ -582,6 +589,9 @@
         }
       }
     });
+  
+    // Store the new chart instance on the canvas for later reference
+    ctx.canvas.chartInstance = newChart;
   }
   
   
@@ -663,6 +673,63 @@
           false,
           "#FFA500"
         );
+      // For purple cap, also include actual wicket stats
+      // Fetch actual purple cap stats from actual_results_data (available via /actual_results)
+      fetch("/actual_results")
+        .then(res => res.json())
+        .then(actualData => {
+          const actualPurpleCapStats = actualData.actualPurpleCapStats || {};
+          // Modify the labels: for each candidate, append actual wickets if available.
+          const modifiedPurpleCapCounts = {};
+          Object.keys(purpleCapCounts).forEach(player => {
+            // If an actual stat exists, append it to the label
+            const wickets = actualPurpleCapStats[player] || "";
+            modifiedPurpleCapCounts[`${player}${wickets ? ' (' + wickets + ' wkts)' : ''}`] = purpleCapCounts[player];
+          });
+          createBarChart(
+            document.getElementById("purpleCapChart").getContext("2d"),
+            "Purple Cap Predictions",
+            modifiedPurpleCapCounts,
+            false,
+            "#90EE90"
+          );
+ // Orange Cap processing
+ const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
+ const modifiedOrangeCapCounts = {};
+ Object.keys(orangeCapCounts).forEach(player => {
+   const runs = actualOrangeCapStats[player] || "";
+   modifiedOrangeCapCounts[`${player}${runs ? ' (' + runs + ' runs)' : ''}`] = orangeCapCounts[player];
+ });
+ createBarChart(
+   document.getElementById("orangeCapChart").getContext("2d"),
+   "Orange Cap Predictions",
+   modifiedOrangeCapCounts,
+   false,
+   "#FFA500"
+ );
+
+
+        })
+        .catch(err => {
+          // Fallback: if no actual stats, just use the original purple cap counts
+          createBarChart(
+            document.getElementById("purpleCapChart").getContext("2d"),
+            "Purple Cap Predictions",
+            purpleCapCounts,
+            false,
+            "#90EE90"
+          );
+          createBarChart(
+            document.getElementById("orangeCapChart").getContext("2d"),
+            "Orange Cap Predictions",
+            orangeCapCounts,
+            false,
+            "#FFA500"
+          );
+
+        });
+
+
       })
       .catch(error => {
         console.error("Error fetching predictions statistics:", error);

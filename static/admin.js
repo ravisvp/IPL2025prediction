@@ -96,7 +96,9 @@ function updateActualResults() {
     actualFinalists: document.getElementById("actualFinalists").value.split(",").map(s => s.trim()),
     actualWinner: document.getElementById("actualWinner").value.trim(),
     actualPurpleCap: document.getElementById("actualPurpleCap").value.trim(),
-    actualOrangeCap: document.getElementById("actualOrangeCap").value.trim()
+    actualOrangeCap: document.getElementById("actualOrangeCap").value.trim(),
+    actualPurpleCapStats: document.getElementById("actualPurpleCapStats").value.trim(),
+    actualOrangeCapStats: document.getElementById("actualOrangeCapStats").value.trim()
   };
 
   fetch("/submit_results", {
