@@ -1412,7 +1412,6 @@ window.displayComments = displayComments;
   window.displayPredictions = displayPredictions;
 })();
 
-
 function displayUpcomingGamePredictions() {
   console.log("✅ displayUpcomingGamePredictions triggered");
 
@@ -1428,7 +1427,7 @@ function displayUpcomingGamePredictions() {
         rankMap[entry.name] = index;
       });
 
-      // Sort predictions based on the rank in leaderboard (if not found, default to Infinity)
+      // Sort predictions based on the rank in leaderboard
       predictions.sort((a, b) => {
         const rankA = rankMap[a.name] !== undefined ? rankMap[a.name] : Infinity;
         const rankB = rankMap[b.name] !== undefined ? rankMap[b.name] : Infinity;
@@ -1454,9 +1453,14 @@ function displayUpcomingGamePredictions() {
                 <th class="sticky-left-col">Game ${upcomingGameIndex + 1}: ${gameName}</th>
       `;
 
-      // Build table header with predictor names sorted by rank
-      predictions.forEach(pred => {
-        html += `<th>${pred.name || "User"}</th>`;
+      // Build table header with predictor names and emojis for top 3
+      predictions.forEach((pred, idx) => {
+        let icon = "";
+        if (idx === 0) icon = "🏆 ";
+        else if (idx === 1) icon = "🥈 ";
+        else if (idx === 2) icon = "🥉 ";
+
+        html += `<th>${icon}${pred.name || "User"}</th>`;
       });
 
       html += `
@@ -1490,6 +1494,7 @@ function displayUpcomingGamePredictions() {
       console.error("Error loading upcoming game predictions", err);
     });
 }
+
 
 
 
