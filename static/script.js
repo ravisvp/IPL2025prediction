@@ -678,38 +678,169 @@
       fetch("/actual_results")
         .then(res => res.json())
         .then(actualData => {
+
           const actualPurpleCapStats = actualData.actualPurpleCapStats || {};
-          // Modify the labels: for each candidate, append actual wickets if available.
-          const modifiedPurpleCapCounts = {};
-          Object.keys(purpleCapCounts).forEach(player => {
-            // If an actual stat exists, append it to the label
-            const wickets = actualPurpleCapStats[player] || "";
-            modifiedPurpleCapCounts[`${player}${wickets ? ' (' + wickets + ' wkts)' : ''}`] = purpleCapCounts[player];
+
+          // Combine predictions count and actual wickets into an array
+          const combinedPurpleStats = Object.keys(purpleCapCounts).map(player => ({
+            player,
+            predictionsCount: purpleCapCounts[player],
+            wickets: parseInt(actualPurpleCapStats[player]) || 0
+          }));
+          
+          // Sort by actual wickets (highest wickets first)
+          combinedPurpleStats.sort((a, b) => b.wickets - a.wickets);
+          
+          // Now create sorted labels and data
+          const purpleLabels = combinedPurpleStats.map(stat => `${stat.player} (${stat.wickets} wkts)`);
+          const purpleData = combinedPurpleStats.map(stat => stat.predictionsCount);
+          
+          // Define colors dynamically based on rank (top 3 wicket-takers)
+          const purpleLabelColors = combinedPurpleStats.map((_, index) => {
+            if (index === 0) return '#FFD700'; // Gold
+            if (index === 1) return '#C0C0C0'; // Silver
+            if (index === 2) return '#CD7F32'; // Bronze
+            return '#FFFFFF'; // White for others
           });
-          createBarChart(
-            document.getElementById("purpleCapChart").getContext("2d"),
-            "Purple Cap Predictions",
-            modifiedPurpleCapCounts,
-            false,
-            "#90EE90"
-          );
+          
+          const ctxPurple = document.getElementById("purpleCapChart").getContext("2d");
+          
+          // Destroy previous chart instance if exists
+          if (ctxPurple.canvas.chartInstance) ctxPurple.canvas.chartInstance.destroy();
+          
+          // Set chart background color
+          ctxPurple.canvas.style.backgroundColor = "#1a1a1a";
+          
+          // Create chart with custom y-axis label colors
+          ctxPurple.canvas.chartInstance = new Chart(ctxPurple, {
+            type: 'bar',
+            data: {
+              labels: purpleLabels,
+              datasets: [{
+                label: "Purple Cap Predictions",
+                data: purpleData,
+                backgroundColor: "#90EE90",
+                borderColor: '#000',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: 'y',
+              scales: {
+                y: {
+                  ticks: {
+                    color: (context) => purpleLabelColors[context.index],
+                    font: {
+                      size: window.innerWidth < 600 ? 10 : 14,
+                      weight: 'bold'
+                    }
+                  }
+                },
+                x: {
+                  beginAtZero: true,
+                  ticks: {
+                    precision: 0,
+                    color: '#FFFFFF',
+                    font: {
+                      size: window.innerWidth < 600 ? 8 : 12
+                    }
+                  },
+                  grid: {
+                    color: '#555'
+                  }
+                }
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+              }
+            }
+          });
+          
+
  // Orange Cap processing
  const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
- const modifiedOrangeCapCounts = {};
- Object.keys(orangeCapCounts).forEach(player => {
-   const runs = actualOrangeCapStats[player] || "";
-   modifiedOrangeCapCounts[`${player}${runs ? ' (' + runs + ' runs)' : ''}`] = orangeCapCounts[player];
- });
- createBarChart(
-   document.getElementById("orangeCapChart").getContext("2d"),
-   "Orange Cap Predictions",
-   modifiedOrangeCapCounts,
-   false,
-   "#FFA500"
- );
 
+// Combine predictions count and actual runs into an array
+const combinedStats = Object.keys(orangeCapCounts).map(player => ({
+  player,
+  predictionsCount: orangeCapCounts[player],
+  runs: parseInt(actualOrangeCapStats[player]) || 0
+}));
 
-        })
+// Sort by actual runs (highest runs first)
+combinedStats.sort((a, b) => b.runs - a.runs);
+
+// Now create sorted labels and data
+const labels = combinedStats.map(stat => `${stat.player} (${stat.runs} runs)`);
+const data = combinedStats.map(stat => stat.predictionsCount);
+
+// Define colors dynamically based on rank (top 3)
+const labelColors = combinedStats.map((_, index) => {
+  if (index === 0) return '#FFD700'; // Gold
+  if (index === 1) return '#C0C0C0'; // Silver
+  if (index === 2) return '#CD7F32'; // Bronze
+  return '#FFFFFF'; // White for others
+});
+
+const ctx = document.getElementById("orangeCapChart").getContext("2d");
+
+// Destroy previous chart instance if exists
+if (ctx.canvas.chartInstance) ctx.canvas.chartInstance.destroy();
+
+// Set chart background color
+ctx.canvas.style.backgroundColor = "#1a1a1a";
+
+// Create chart with custom y-axis label colors
+ctx.canvas.chartInstance = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: "Orange Cap Predictions",
+      data: data,
+      backgroundColor: "#FFA500",
+      borderColor: '#000',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    scales: {
+      y: {
+        ticks: {
+          color: (context) => labelColors[context.index],
+          font: {
+            size: window.innerWidth < 600 ? 10 : 14,
+            weight: 'bold'
+          }
+        }
+      },
+      x: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+          color: '#FFFFFF',
+          font: {
+            size: window.innerWidth < 600 ? 8 : 12
+          }
+        },
+        grid: {
+          color: '#555'
+        }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true }
+    }
+  }
+});
+})
         .catch(err => {
           // Fallback: if no actual stats, just use the original purple cap counts
           createBarChart(
