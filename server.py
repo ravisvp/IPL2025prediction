@@ -360,6 +360,26 @@ def next_game_predictions():
         "predictions": user_predictions
     })
 
+@app.route("/cap_prediction_users", methods=["GET"])
+def cap_prediction_users():
+    predictions = Prediction.query.all()
+
+    purple_cap_users = {}
+    orange_cap_users = {}
+
+    for p in predictions:
+        # Purple Cap
+        purple_cap_users.setdefault(p.purple_cap, []).append(p.name)
+        # Orange Cap
+        orange_cap_users.setdefault(p.orange_cap, []).append(p.name)
+
+    return jsonify({
+        "purple_cap_users": purple_cap_users,
+        "orange_cap_users": orange_cap_users
+    })
+
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

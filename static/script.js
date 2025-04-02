@@ -606,12 +606,12 @@
   
     container.innerHTML = "<p>Loading statistics...</p>";
   
-    fetch("/get_predictions")
-      .then(response => {
-        if (!response.ok) throw new Error("Server response not ok");
-        return response.json();
-      })
-      .then(predictions => {
+    Promise.all([
+      fetch("/get_predictions").then(r => r.json()),
+      fetch("/actual_results").then(r => r.json()),
+      fetch("/cap_prediction_users").then(r => r.json())
+    ])
+      .then(([predictions, actualData, capUsers]) => {
         if (!predictions || predictions.length === 0) {
           container.innerHTML = "<p>No predictions to show statistics.</p>";
           return;
@@ -622,35 +622,27 @@
         const orangeCapCounts = {};
   
         predictions.forEach(pred => {
-          const winner = pred.winner || "Unknown";
-          const purpleCap = pred.purple_cap || "Unknown";
-          const orangeCap = pred.orange_cap || "Unknown";
-  
-          winnerCounts[winner] = (winnerCounts[winner] || 0) + 1;
-          purpleCapCounts[purpleCap] = (purpleCapCounts[purpleCap] || 0) + 1;
-          orangeCapCounts[orangeCap] = (orangeCapCounts[orangeCap] || 0) + 1;
+          winnerCounts[pred.winner || "Unknown"] = (winnerCounts[pred.winner || "Unknown"] || 0) + 1;
+          purpleCapCounts[pred.purple_cap || "Unknown"] = (purpleCapCounts[pred.purple_cap || "Unknown"] || 0) + 1;
+          orangeCapCounts[pred.orange_cap || "Unknown"] = (orangeCapCounts[pred.orange_cap || "Unknown"] || 0) + 1;
         });
   
         container.innerHTML = `
-        <h2 class="violet-heading">Prediction Statistics</h2>
-        
-        <div class="chart-container">
-          <div class="chart-header violet-header">Winner Predictions</div>
-          <canvas id="winnerChart"></canvas>
-        </div>
-      
-        <div class="chart-container">
-          <div class="chart-header violet-header">Purple Cap Predictions</div>
-          <canvas id="purpleCapChart"></canvas>
-        </div>
-      
-        <div class="chart-container">
-          <div class="chart-header violet-header">Orange Cap Predictions</div>
-          <canvas id="orangeCapChart"></canvas>
-        </div>
-      `;
-      
-        // Create the bar charts
+          <h2 class="violet-heading">Prediction Statistics</h2>
+          <div class="chart-container">
+            <div class="chart-header violet-header">Winner Predictions</div>
+            <canvas id="winnerChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <div class="chart-header violet-header">Purple Cap Predictions</div>
+            <canvas id="purpleCapChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <div class="chart-header violet-header">Orange Cap Predictions</div>
+            <canvas id="orangeCapChart"></canvas>
+          </div>
+        `;
+  
         createBarChart(
           document.getElementById("winnerChart").getContext("2d"),
           "Winner Predictions",
@@ -658,209 +650,87 @@
           true
         );
   
-        createBarChart(
-          document.getElementById("purpleCapChart").getContext("2d"),
-          "Purple Cap Predictions",
-          purpleCapCounts,
-          false,
-          "#90EE90"
-        );
+        const actualPurpleCapStats = actualData.actualPurpleCapStats || {};
+        const combinedPurpleStats = Object.keys(purpleCapCounts).map(player => ({
+          player,
+          predictionsCount: purpleCapCounts[player],
+          wickets: parseInt(actualPurpleCapStats[player]) || 0,
+          users: capUsers.purple_cap_users[player] || []
+        }));
   
-        createBarChart(
-          document.getElementById("orangeCapChart").getContext("2d"),
-          "Orange Cap Predictions",
-          orangeCapCounts,
-          false,
-          "#FFA500"
-        );
-      // For purple cap, also include actual wicket stats
-      // Fetch actual purple cap stats from actual_results_data (available via /actual_results)
-      fetch("/actual_results")
-        .then(res => res.json())
-        .then(actualData => {
-
-          const actualPurpleCapStats = actualData.actualPurpleCapStats || {};
-
-          // Combine predictions count and actual wickets into an array
-          const combinedPurpleStats = Object.keys(purpleCapCounts).map(player => ({
-            player,
-            predictionsCount: purpleCapCounts[player],
-            wickets: parseInt(actualPurpleCapStats[player]) || 0
-          }));
-          
-          // Sort by actual wickets (highest wickets first)
-          combinedPurpleStats.sort((a, b) => b.wickets - a.wickets);
-          
-          // Now create sorted labels and data
-          const purpleLabels = combinedPurpleStats.map(stat => `${stat.player} (${stat.wickets} wkts)`);
-          const purpleData = combinedPurpleStats.map(stat => stat.predictionsCount);
-          
-          // Define colors dynamically based on rank (top 3 wicket-takers)
-          const purpleLabelColors = combinedPurpleStats.map((_, index) => {
-            if (index === 0) return '#FFD700'; // Gold
-            if (index === 1) return '#C0C0C0'; // Silver
-            if (index === 2) return '#CD7F32'; // Bronze
-            return '#FFFFFF'; // White for others
-          });
-          
-          const ctxPurple = document.getElementById("purpleCapChart").getContext("2d");
-          
-          // Destroy previous chart instance if exists
-          if (ctxPurple.canvas.chartInstance) ctxPurple.canvas.chartInstance.destroy();
-          
-          // Set chart background color
-          ctxPurple.canvas.style.backgroundColor = "#1a1a1a";
-          
-          // Create chart with custom y-axis label colors
-          ctxPurple.canvas.chartInstance = new Chart(ctxPurple, {
-            type: 'bar',
-            data: {
-              labels: purpleLabels,
-              datasets: [{
-                label: "Purple Cap Predictions",
-                data: purpleData,
-                backgroundColor: "#90EE90",
-                borderColor: '#000',
-                borderWidth: 1
-              }]
+        combinedPurpleStats.sort((a, b) => b.wickets - a.wickets);
+  
+        const purpleLabels = combinedPurpleStats.map(stat => `${stat.player} (${stat.wickets} wkts)`);
+        const purpleData = combinedPurpleStats.map(stat => stat.predictionsCount);
+        const purpleLabelColors = combinedPurpleStats.map((_, index) => ['#FFD700', '#C0C0C0', '#CD7F32'][index] || '#FFFFFF');
+  
+        const ctxPurple = document.getElementById("purpleCapChart").getContext("2d");
+        if (ctxPurple.canvas.chartInstance) ctxPurple.canvas.chartInstance.destroy();
+        ctxPurple.canvas.style.backgroundColor = "#1a1a1a";
+  
+        ctxPurple.canvas.chartInstance = new Chart(ctxPurple, {
+          type: 'bar',
+          data: { labels: purpleLabels, datasets: [{ label: "Purple Cap Predictions", data: purpleData, backgroundColor: "#90EE90", borderColor: '#000', borderWidth: 1 }] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+              y: { ticks: { color: ctx => purpleLabelColors[ctx.index], font: { size: window.innerWidth < 600 ? 10 : 14, weight: 'bold' } } },
+              x: { beginAtZero: true, ticks: { precision: 0, color: '#FFFFFF', font: { size: window.innerWidth < 600 ? 8 : 12 } }, grid: { color: '#555' } }
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              indexAxis: 'y',
-              scales: {
-                y: {
-                  ticks: {
-                    color: (context) => purpleLabelColors[context.index],
-                    font: {
-                      size: window.innerWidth < 600 ? 10 : 14,
-                      weight: 'bold'
-                    }
-                  }
-                },
-                x: {
-                  beginAtZero: true,
-                  ticks: {
-                    precision: 0,
-                    color: '#FFFFFF',
-                    font: {
-                      size: window.innerWidth < 600 ? 8 : 12
-                    }
-                  },
-                  grid: {
-                    color: '#555'
-                  }
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: ctx => `Purple Cap Predictions: ${combinedPurpleStats[ctx.dataIndex].predictionsCount} (${combinedPurpleStats[ctx.dataIndex].users.join(", ")})`
                 }
-              },
-              plugins: {
-                legend: { display: false },
-                tooltip: { enabled: true }
               }
             }
-          });
-          
-
- // Orange Cap processing
- const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
-
-// Combine predictions count and actual runs into an array
-const combinedStats = Object.keys(orangeCapCounts).map(player => ({
-  player,
-  predictionsCount: orangeCapCounts[player],
-  runs: parseInt(actualOrangeCapStats[player]) || 0
-}));
-
-// Sort by actual runs (highest runs first)
-combinedStats.sort((a, b) => b.runs - a.runs);
-
-// Now create sorted labels and data
-const labels = combinedStats.map(stat => `${stat.player} (${stat.runs} runs)`);
-const data = combinedStats.map(stat => stat.predictionsCount);
-
-// Define colors dynamically based on rank (top 3)
-const labelColors = combinedStats.map((_, index) => {
-  if (index === 0) return '#FFD700'; // Gold
-  if (index === 1) return '#C0C0C0'; // Silver
-  if (index === 2) return '#CD7F32'; // Bronze
-  return '#FFFFFF'; // White for others
-});
-
-const ctx = document.getElementById("orangeCapChart").getContext("2d");
-
-// Destroy previous chart instance if exists
-if (ctx.canvas.chartInstance) ctx.canvas.chartInstance.destroy();
-
-// Set chart background color
-ctx.canvas.style.backgroundColor = "#1a1a1a";
-
-// Create chart with custom y-axis label colors
-ctx.canvas.chartInstance = new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: labels,
-    datasets: [{
-      label: "Orange Cap Predictions",
-      data: data,
-      backgroundColor: "#FFA500",
-      borderColor: '#000',
-      borderWidth: 1
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    scales: {
-      y: {
-        ticks: {
-          color: (context) => labelColors[context.index],
-          font: {
-            size: window.innerWidth < 600 ? 10 : 14,
-            weight: 'bold'
           }
-        }
-      },
-      x: {
-        beginAtZero: true,
-        ticks: {
-          precision: 0,
-          color: '#FFFFFF',
-          font: {
-            size: window.innerWidth < 600 ? 8 : 12
-          }
-        },
-        grid: {
-          color: '#555'
-        }
-      }
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: true }
-    }
-  }
-});
-})
-        .catch(err => {
-          // Fallback: if no actual stats, just use the original purple cap counts
-          createBarChart(
-            document.getElementById("purpleCapChart").getContext("2d"),
-            "Purple Cap Predictions",
-            purpleCapCounts,
-            false,
-            "#90EE90"
-          );
-          createBarChart(
-            document.getElementById("orangeCapChart").getContext("2d"),
-            "Orange Cap Predictions",
-            orangeCapCounts,
-            false,
-            "#FFA500"
-          );
-
         });
-
-
+  
+        const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
+        const combinedOrangeStats = Object.keys(orangeCapCounts).map(player => ({
+          player,
+          predictionsCount: orangeCapCounts[player],
+          runs: parseInt(actualOrangeCapStats[player]) || 0,
+          users: capUsers.orange_cap_users[player] || []
+        }));
+  
+        combinedOrangeStats.sort((a, b) => b.runs - a.runs);
+  
+        const orangeLabels = combinedOrangeStats.map(stat => `${stat.player} (${stat.runs} runs)`);
+        const orangeData = combinedOrangeStats.map(stat => stat.predictionsCount);
+        const orangeLabelColors = combinedOrangeStats.map((_, index) => ['#FFD700', '#C0C0C0', '#CD7F32'][index] || '#FFFFFF');
+  
+        const ctxOrange = document.getElementById("orangeCapChart").getContext("2d");
+        if (ctxOrange.canvas.chartInstance) ctxOrange.canvas.chartInstance.destroy();
+        ctxOrange.canvas.style.backgroundColor = "#1a1a1a";
+  
+        ctxOrange.canvas.chartInstance = new Chart(ctxOrange, {
+          type: 'bar',
+          data: { labels: orangeLabels, datasets: [{ label: "Orange Cap Predictions", data: orangeData, backgroundColor: "#FFA500", borderColor: '#000', borderWidth: 1 }] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+              y: { ticks: { color: ctx => orangeLabelColors[ctx.index], font: { size: window.innerWidth < 600 ? 10 : 14, weight: 'bold' } } },
+              x: { beginAtZero: true, ticks: { precision: 0, color: '#FFFFFF', font: { size: window.innerWidth < 600 ? 8 : 12 } }, grid: { color: '#555' } }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: ctx => `Orange Cap Predictions: ${combinedOrangeStats[ctx.dataIndex].predictionsCount} (${combinedOrangeStats[ctx.dataIndex].users.join(", ")})`
+                }
+              }
+            }
+          }
+        });
       })
       .catch(error => {
         console.error("Error fetching predictions statistics:", error);
@@ -1505,9 +1375,6 @@ window.addEventListener('load', function() {
     displayUpcomingGamePredictions();
   }
 });
-
-
-
 
 
 
