@@ -1332,7 +1332,7 @@ window.displayComments = displayComments;
 
 // Match schedule with game number and start time (24-hour format, in local time or UTC)
 const matchSchedule = [
-  { game: 16, teams: "MI vs LSG", startTime: "2025-04-04T10:00:00" }
+  { game: 17, teams: "DC vs CSK", startTime: "2025-04-05T06:00:00" }
 
   // Add more games as needed
 ];
