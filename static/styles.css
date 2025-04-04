@@ -911,5 +911,57 @@ tr.third-predictor td:first-child {
   font-weight: bold;
 }
 
+.countdown-box {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffd700;
+  margin-left: 12px;
+  white-space: nowrap;
+}
+
+.predictions-header-with-timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.predictions-title {
+  background-color: #5e239d; /* Violet */
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.prediction-title-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .prediction-title-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.countdown-violet-box {
+  background-color: #5e239d;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  margin-left: 12px;
+  display: inline-block;
+}
+
 
 

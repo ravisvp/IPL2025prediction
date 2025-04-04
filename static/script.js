@@ -593,12 +593,105 @@
     // Store the new chart instance on the canvas for later reference
     ctx.canvas.chartInstance = newChart;
   }
+
+  function createScrollableTooltip(ctx, chartLabel, combinedStats, color, labelColors) {
+    if (ctx.canvas.chartInstance) ctx.canvas.chartInstance.destroy();
+    const isMobile = window.innerWidth < 600;
   
+    ctx.canvas.style.backgroundColor = "#1a1a1a";
+  
+    ctx.canvas.chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: combinedStats.map(stat => `${stat.player} (${stat.statValue})`),
+        datasets: [{
+          label: chartLabel,
+          data: combinedStats.map(stat => stat.predictionsCount),
+          backgroundColor: color,
+          borderColor: '#000',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+          y: {
+            ticks: {
+              color: (ctx) => labelColors[ctx.index],
+              font: {
+                size: isMobile ? 10 : 14,
+                weight: 'bold'
+              }
+            }
+          },
+          x: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#FFFFFF',
+              font: {
+                size: isMobile ? 8 : 12
+              }
+            },
+            grid: {
+              color: '#555'
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: false,
+            external: function(context) {
+              let tooltipEl = document.getElementById('chartjs-tooltip');
+              if (!tooltipEl) {
+                tooltipEl = document.createElement('div');
+                tooltipEl.id = 'chartjs-tooltip';
+                tooltipEl.innerHTML = '<table></table>';
+                document.body.appendChild(tooltipEl);
+              }
+  
+              const tooltipModel = context.tooltip;
+              if (tooltipModel.opacity === 0) {
+                tooltipEl.style.opacity = 0;
+                return;
+              }
+  
+              const stat = combinedStats[tooltipModel.dataPoints[0].dataIndex];
+              const userList = stat.users.length > 0 ? stat.users.join(", ") : "No users";
+  
+              const maxHeight = window.innerHeight / 3;
+              tooltipEl.innerHTML = `
+                <div style="font-size:12px; font-weight:bold;">${chartLabel}: ${stat.predictionsCount}</div>
+                <div style="max-height:${maxHeight}px; overflow-y:auto; font-size:11px; color:#fff;">
+                  ${userList}
+                </div>
+              `;
+  
+              const position = context.chart.canvas.getBoundingClientRect();
+              tooltipEl.style.opacity = 1;
+              tooltipEl.style.position = 'absolute';
+              tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
+              tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+              tooltipEl.style.background = 'rgba(0, 0, 0, 0.8)';
+              tooltipEl.style.padding = '8px';
+              tooltipEl.style.borderRadius = '4px';
+              tooltipEl.style.pointerEvents = 'none';
+              tooltipEl.style.zIndex = '1000';
+              tooltipEl.style.maxWidth = '200px';
+              tooltipEl.style.color = '#fff';
+            }
+          }
+        }
+      }
+    });
+  }
   
   
   function displayStatistics() {
     const container = document.getElementById("statisticsContainer");
-  
     if (!container) {
       console.error("Statistics container not found!");
       return;
@@ -654,89 +747,44 @@
         const combinedPurpleStats = Object.keys(purpleCapCounts).map(player => ({
           player,
           predictionsCount: purpleCapCounts[player],
-          wickets: parseInt(actualPurpleCapStats[player]) || 0,
+          statValue: parseInt(actualPurpleCapStats[player]) || 0,
           users: capUsers.purple_cap_users[player] || []
         }));
-  
-        combinedPurpleStats.sort((a, b) => b.wickets - a.wickets);
-  
-        const purpleLabels = combinedPurpleStats.map(stat => `${stat.player} (${stat.wickets} wkts)`);
-        const purpleData = combinedPurpleStats.map(stat => stat.predictionsCount);
+        combinedPurpleStats.sort((a, b) => b.statValue - a.statValue);
         const purpleLabelColors = combinedPurpleStats.map((_, index) => ['#FFD700', '#C0C0C0', '#CD7F32'][index] || '#FFFFFF');
-  
-        const ctxPurple = document.getElementById("purpleCapChart").getContext("2d");
-        if (ctxPurple.canvas.chartInstance) ctxPurple.canvas.chartInstance.destroy();
-        ctxPurple.canvas.style.backgroundColor = "#1a1a1a";
-  
-        ctxPurple.canvas.chartInstance = new Chart(ctxPurple, {
-          type: 'bar',
-          data: { labels: purpleLabels, datasets: [{ label: "Purple Cap Predictions", data: purpleData, backgroundColor: "#90EE90", borderColor: '#000', borderWidth: 1 }] },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            scales: {
-              y: { ticks: { color: ctx => purpleLabelColors[ctx.index], font: { size: window.innerWidth < 600 ? 10 : 14, weight: 'bold' } } },
-              x: { beginAtZero: true, ticks: { precision: 0, color: '#FFFFFF', font: { size: window.innerWidth < 600 ? 8 : 12 } }, grid: { color: '#555' } }
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                enabled: true,
-                callbacks: {
-                  label: ctx => `Purple Cap Predictions: ${combinedPurpleStats[ctx.dataIndex].predictionsCount} (${combinedPurpleStats[ctx.dataIndex].users.join(", ")})`
-                }
-              }
-            }
-          }
-        });
+        createScrollableTooltip(
+          document.getElementById("purpleCapChart").getContext("2d"),
+          "Purple Cap Predictions",
+          combinedPurpleStats,
+          "#90EE90",
+          purpleLabelColors
+        );
   
         const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
         const combinedOrangeStats = Object.keys(orangeCapCounts).map(player => ({
           player,
           predictionsCount: orangeCapCounts[player],
-          runs: parseInt(actualOrangeCapStats[player]) || 0,
+          statValue: parseInt(actualOrangeCapStats[player]) || 0,
           users: capUsers.orange_cap_users[player] || []
         }));
-  
-        combinedOrangeStats.sort((a, b) => b.runs - a.runs);
-  
-        const orangeLabels = combinedOrangeStats.map(stat => `${stat.player} (${stat.runs} runs)`);
-        const orangeData = combinedOrangeStats.map(stat => stat.predictionsCount);
+        combinedOrangeStats.sort((a, b) => b.statValue - a.statValue);
         const orangeLabelColors = combinedOrangeStats.map((_, index) => ['#FFD700', '#C0C0C0', '#CD7F32'][index] || '#FFFFFF');
-  
-        const ctxOrange = document.getElementById("orangeCapChart").getContext("2d");
-        if (ctxOrange.canvas.chartInstance) ctxOrange.canvas.chartInstance.destroy();
-        ctxOrange.canvas.style.backgroundColor = "#1a1a1a";
-  
-        ctxOrange.canvas.chartInstance = new Chart(ctxOrange, {
-          type: 'bar',
-          data: { labels: orangeLabels, datasets: [{ label: "Orange Cap Predictions", data: orangeData, backgroundColor: "#FFA500", borderColor: '#000', borderWidth: 1 }] },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            scales: {
-              y: { ticks: { color: ctx => orangeLabelColors[ctx.index], font: { size: window.innerWidth < 600 ? 10 : 14, weight: 'bold' } } },
-              x: { beginAtZero: true, ticks: { precision: 0, color: '#FFFFFF', font: { size: window.innerWidth < 600 ? 8 : 12 } }, grid: { color: '#555' } }
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                enabled: true,
-                callbacks: {
-                  label: ctx => `Orange Cap Predictions: ${combinedOrangeStats[ctx.dataIndex].predictionsCount} (${combinedOrangeStats[ctx.dataIndex].users.join(", ")})`
-                }
-              }
-            }
-          }
-        });
+        createScrollableTooltip(
+          document.getElementById("orangeCapChart").getContext("2d"),
+          "Orange Cap Predictions",
+          combinedOrangeStats,
+          "#FFA500",
+          orangeLabelColors
+        );
       })
       .catch(error => {
         console.error("Error fetching predictions statistics:", error);
         container.innerHTML = "<p>Error loading statistics.</p>";
       });
   }
+  
+  
+  
   
   function renderBarChart(canvasId, label, dataCounts) {
     const ctx = document.getElementById(canvasId).getContext('2d');
@@ -1282,6 +1330,16 @@ window.displayComments = displayComments;
   window.displayPredictions = displayPredictions;
 })();
 
+// Match schedule with game number and start time (24-hour format, in local time or UTC)
+const matchSchedule = [
+  { game: 16, teams: "MI vs LSG", startTime: "2025-04-04T10:00:00" }
+
+  // Add more games as needed
+];
+
+
+
+
 function displayUpcomingGamePredictions() {
   console.log("✅ displayUpcomingGamePredictions triggered");
 
@@ -1291,20 +1349,17 @@ function displayUpcomingGamePredictions() {
     fetch("/actual_results").then(r => r.json())
   ])
     .then(([leaderboard, predictions, actualData]) => {
-      // Build a rank map from the leaderboard (lower index means higher rank)
       const rankMap = {};
       leaderboard.forEach((entry, index) => {
         rankMap[entry.name] = index;
       });
 
-      // Sort predictions based on the rank in leaderboard
       predictions.sort((a, b) => {
         const rankA = rankMap[a.name] !== undefined ? rankMap[a.name] : Infinity;
         const rankB = rankMap[b.name] !== undefined ? rankMap[b.name] : Infinity;
         return rankA - rankB;
       });
 
-      // Determine the upcoming game index using actual results
       const actualResults = actualData.actualResults || [];
       const upcomingGameIndex = actualResults.length;
       const container = document.getElementById("upcomingPredictionTableContainer");
@@ -1315,15 +1370,19 @@ function displayUpcomingGamePredictions() {
       }
 
       const gameName = gamesList[upcomingGameIndex];
+
+      // Add countdown placeholder
+      const countdownBox = `<span id="matchCountdown" class="countdown-box">⏳ Loading...</span>`;
+
       let html = `
         <div class="scrollable-table-wrapper">
           <table id="upcomingGameTable">
             <thead>
               <tr>
                 <th class="sticky-left-col">Game ${upcomingGameIndex + 1}: ${gameName}</th>
+
       `;
 
-      // Build table header with predictor names and emojis for top 3
       predictions.forEach((pred, idx) => {
         let icon = "";
         if (idx === 0) icon = "🏆 ";
@@ -1341,7 +1400,6 @@ function displayUpcomingGamePredictions() {
                 <td class="sticky-left-col">Prediction</td>
       `;
 
-      // Build the row for each user's upcoming game prediction in sorted order
       predictions.forEach(pred => {
         const preds = Array.isArray(pred.predictions)
           ? pred.predictions
@@ -1359,6 +1417,46 @@ function displayUpcomingGamePredictions() {
       `;
 
       container.innerHTML = html;
+
+      // Add countdown timer element next to existing "Upcoming Game Predictions" title
+      const wrapper = document.querySelector(".prediction-title-wrapper");
+if (wrapper) {
+  const countdownBox = document.createElement("span");
+  countdownBox.id = "matchCountdownBox";
+  countdownBox.className = "countdown-violet-box";
+  countdownBox.textContent = "⏳ Loading...";
+  wrapper.appendChild(countdownBox);
+}
+
+
+
+      // MATCH COUNTDOWN TIMER
+      const upcomingSchedule = matchSchedule.find(m => m.game === upcomingGameIndex + 1);
+      if (upcomingSchedule) {
+        const matchTime = new Date(upcomingSchedule.startTime).getTime();
+        const countdownEl = document.getElementById("matchCountdownBox");
+
+
+        function updateCountdown() {
+          const now = new Date().getTime();
+          const distance = matchTime - now;
+
+          if (distance <= 0) {
+            countdownEl.textContent = "🎯 Match started!";
+            clearInterval(timer);
+            return;
+          }
+
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          countdownEl.textContent = `⏳ ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        updateCountdown();
+        const timer = setInterval(updateCountdown, 1000);
+      }
     })
     .catch(err => {
       console.error("Error loading upcoming game predictions", err);
