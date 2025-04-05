@@ -722,17 +722,20 @@
   
         container.innerHTML = `
           <h2 class="violet-heading">Prediction Statistics</h2>
+  
           <div class="chart-container">
-            <div class="chart-header violet-header">Winner Predictions</div>
-            <canvas id="winnerChart"></canvas>
+            <div class="chart-header violet-header">Orange Cap Predictions</div>
+            <canvas id="orangeCapChart"></canvas>
           </div>
+  
           <div class="chart-container">
             <div class="chart-header violet-header">Purple Cap Predictions</div>
             <canvas id="purpleCapChart"></canvas>
           </div>
+  
           <div class="chart-container">
-            <div class="chart-header violet-header">Orange Cap Predictions</div>
-            <canvas id="orangeCapChart"></canvas>
+            <div class="chart-header violet-header">Winner Predictions</div>
+            <canvas id="winnerChart"></canvas>
           </div>
         `;
   
@@ -744,6 +747,9 @@
         );
   
         const actualPurpleCapStats = actualData.actualPurpleCapStats || {};
+        const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
+  
+        // ---------- Purple Cap ----------
         const combinedPurpleStats = Object.keys(purpleCapCounts).map(player => ({
           player,
           predictionsCount: purpleCapCounts[player],
@@ -760,7 +766,22 @@
           purpleLabelColors
         );
   
-        const actualOrangeCapStats = actualData.actualOrangeCapStats || {};
+        // Check actual Purple Cap leader
+        const purpleLeader = Object.entries(actualPurpleCapStats).sort((a, b) => b[1] - a[1])[0];
+        const purpleLeaderName = purpleLeader?.[0] || null;
+        const purpleLeaderWkts = purpleLeader?.[1] || null;
+        const purpleWasPredicted = combinedPurpleStats.some(stat => stat.player.toUpperCase() === purpleLeaderName?.toUpperCase());
+  
+        if (purpleLeaderName && !purpleWasPredicted) {
+          const chartContainer = document.getElementById("purpleCapChart").parentNode;
+          const noteDiv = document.createElement("div");
+          noteDiv.className = "actual-cap-highlight";
+          noteDiv.innerHTML = `🏏 Actual Purple Cap Leader: <strong>${purpleLeaderName}</strong> (${purpleLeaderWkts} wkts) – not predicted by anyone!`;
+          chartContainer.insertBefore(noteDiv, chartContainer.querySelector("canvas"));
+
+        }
+  
+        // ---------- Orange Cap ----------
         const combinedOrangeStats = Object.keys(orangeCapCounts).map(player => ({
           player,
           predictionsCount: orangeCapCounts[player],
@@ -776,6 +797,21 @@
           "#FFA500",
           orangeLabelColors
         );
+  
+        // Check actual Orange Cap leader
+        const orangeLeader = Object.entries(actualOrangeCapStats).sort((a, b) => b[1] - a[1])[0];
+        const orangeLeaderName = orangeLeader?.[0] || null;
+        const orangeLeaderRuns = orangeLeader?.[1] || null;
+        const orangeWasPredicted = combinedOrangeStats.some(stat => stat.player.toUpperCase() === orangeLeaderName?.toUpperCase());
+  
+        if (orangeLeaderName && !orangeWasPredicted) {
+          const chartContainer = document.getElementById("orangeCapChart").parentNode;
+          const noteDiv = document.createElement("div");
+          noteDiv.className = "actual-cap-highlight";
+          noteDiv.innerHTML = `🏏 Actual Orange Cap Leader: <strong>${orangeLeaderName}</strong> (${orangeLeaderRuns} runs) – not predicted by anyone!`;
+          chartContainer.insertBefore(noteDiv, chartContainer.querySelector("canvas"));
+
+        }
       })
       .catch(error => {
         console.error("Error fetching predictions statistics:", error);
@@ -1473,7 +1509,6 @@ window.addEventListener('load', function() {
     displayUpcomingGamePredictions();
   }
 });
-
 
 
 
