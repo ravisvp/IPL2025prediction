@@ -19,9 +19,9 @@
     "MI vs LSG",
     "DC vs CSK",
     "RR vs PBKS",
-    "LSG vs KKR",
     "GT vs SRH",
     "RCB vs MI",
+    "LSG vs KKR",
     "PBKS vs CSK",
     "RR vs GT",
     "DC vs RCB",
@@ -1368,7 +1368,7 @@ window.displayComments = displayComments;
 
 // Match schedule with game number and start time (24-hour format, in local time or UTC)
 const matchSchedule = [
-  { game: 17, teams: "DC vs CSK", startTime: "2025-04-05T06:00:00" }
+  { game: 19, teams: "GT vs SRH", startTime: "2025-04-06T10:00:00" }
 
   // Add more games as needed
 ];
