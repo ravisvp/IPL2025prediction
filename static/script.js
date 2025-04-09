@@ -398,38 +398,50 @@
             if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
               tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
             } else {
+              let currentRank = 1;
+              let prevPoints = null;
+  
               leaderboard.forEach((entry, idx) => {
                 const row = document.createElement("tr");
-                const rankNumber = idx + 1;
+  
+                // Dense ranking: same points = same rank, next group rank +1
+                if (entry.total_points !== prevPoints) {
+                  currentRank = currentRank;
+                }
+  
+                const rankNumber = currentRank;
+                prevPoints = entry.total_points;
+  
+                if (idx + 1 < leaderboard.length) {
+                  const nextPoints = leaderboard[idx + 1].total_points;
+                  if (nextPoints !== prevPoints) {
+                    currentRank++;
+                  }
+                }
+  
                 const displayName = entry.name || "User";
   
                 // 🎖️ Add emoji + glow text classes
                 const nameCell = document.createElement("td");
                 let icon = "";
-                if (idx === 0) {
+                if (rankNumber === 1) {
                   icon = "🏆 ";
                   nameCell.classList.add("top-predictor");
                   row.classList.add("top-rank-gold");
-                } else if (idx === 1) {
+                } else if (rankNumber === 2) {
                   icon = "🥈 ";
                   nameCell.classList.add("second-predictor");
                   row.classList.add("top-rank-silver");
-                } else if (idx === 2) {
+                } else if (rankNumber === 3) {
                   icon = "🥉 ";
                   nameCell.classList.add("third-predictor");
                   row.classList.add("top-rank-bronze");
-                }
-                else {
-                  row.classList.add("leaderboard-row");  // ✅ add this for non-top-3
+                } else {
+                  row.classList.add("leaderboard-row");
                 }
   
                 nameCell.innerHTML = `${rankNumber}. ${icon}${displayName}`;
-
-                if (idx > 2) {
-                  nameCell.classList.add("regular-predictor");
-                }
-                
-            
+                if (rankNumber > 3) nameCell.classList.add("regular-predictor");
                 nameCell.style.color = "#000";
                 nameCell.style.fontWeight = "bold";
                 nameCell.style.whiteSpace = "nowrap";
@@ -469,7 +481,6 @@
         tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
       });
   }
-  
   
   
   
