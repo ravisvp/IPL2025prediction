@@ -1156,9 +1156,19 @@ tr.third-predictor td:first-child {
 }
 
 /* Vary heights */
-.podium-item.first { height: 150px; background: linear-gradient(to top, gold, #ffe066); }
-.podium-item.second { height: 120px; background: linear-gradient(to top, silver, #ddd); }
-.podium-item.third { height: 100px; background: linear-gradient(to top, #cd7f32, #e8a35c); }
+/* Vary heights with more contrast */
+.podium-item.gold {
+  height: 200px !important;
+}
+
+.podium-item.silver {
+  height: 160px !important;
+}
+
+.podium-item.bronze {
+  height: 130px !important;
+}
+
 
 @keyframes popIn {
   0% { transform: translateY(20px); opacity: 0; }
@@ -1248,9 +1258,21 @@ tr.third-predictor td:first-child {
 
 /* Points below names */
 .podium-item .points {
-  font-size: 0.8rem;
-  font-weight: normal;
-  opacity: 0.85;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+/* Vary font sizes for points */
+.podium-item.gold .points {
+  font-size: 1.2rem;
+}
+
+.podium-item.silver .points {
+  font-size: 1rem;
+}
+
+.podium-item.bronze .points {
+  font-size: 0.95rem;
 }
 
 /* Responsive behavior for mobile */

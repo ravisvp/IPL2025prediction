@@ -389,45 +389,49 @@ const podiumContainer = document.getElementById("podiumContainer");
 podiumContainer.innerHTML = ""; // Clear old content
 
 if (leaderboard.length >= 1) {
-  const top1 = [];
-  const top2 = [];
-  const top3 = [];
+  const podiumWrapper = document.createElement("div");
+  podiumWrapper.className = "podium";
+
   let currentRank = 1;
   let prevPoints = null;
+  let rankCounter = 0;
 
-  for (let i = 0; i < leaderboard.length; i++) {
+  for (let i = 0; i < leaderboard.length && currentRank <= 3; i++) {
     const entry = leaderboard[i];
     if (entry.total_points !== prevPoints) {
-      currentRank = top1.length ? (top2.length ? 3 : 2) : 1;
+      rankCounter++;
+      currentRank = rankCounter;
     }
 
-    if (currentRank === 1) top1.push(entry);
-    else if (currentRank === 2) top2.push(entry);
-    else if (currentRank === 3) top3.push(entry);
+    let rankClass = "";
+    let medal = "";
+    if (currentRank === 1) {
+      rankClass = "gold";
+      medal = "🥇";
+    } else if (currentRank === 2) {
+      rankClass = "silver";
+      medal = "🥈";
+    } else if (currentRank === 3) {
+      rankClass = "bronze";
+      medal = "🥉";
+    } else {
+      break;
+    }
 
+    const card = document.createElement("div");
+    card.className = `podium-item ${rankClass}`;
+    card.innerHTML = `
+      <div class="emoji">${medal}</div>
+      <div class="name">${entry.name}</div>
+      <div class="points">${entry.total_points} pts</div>
+    `;
+    podiumWrapper.appendChild(card);
     prevPoints = entry.total_points;
-    if (top3.length > 0) break; // only take first 3 ranks
   }
 
-  const podiumHTML = `
-    <div class="podium">
-      <div class="podium-item silver">
-        <div class="emoji">🥈</div>
-        ${top2.map(p => `<div class="name">${p.name}</div><div class="points">${p.total_points} pts</div>`).join("")}
-      </div>
-      <div class="podium-item gold">
-        <div class="emoji">🥇</div>
-        ${top1.map(p => `<div class="name">${p.name}</div><div class="points">${p.total_points} pts</div>`).join("")}
-      </div>
-      <div class="podium-item bronze">
-        <div class="emoji">🥉</div>
-        ${top3.map(p => `<div class="name">${p.name}</div><div class="points">${p.total_points} pts</div>`).join("")}
-      </div>
-    </div>
-  `;
-
-  podiumContainer.innerHTML = podiumHTML;
+  podiumContainer.appendChild(podiumWrapper);
 }
+
 
             if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
               tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
