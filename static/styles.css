@@ -1254,5 +1254,16 @@ tr.third-predictor td:first-child {
   color: #000 !important;
 }
 
+.top-predictor,
+.second-predictor,
+.third-predictor,
+.regular-predictor {
+  color: #000 !important;
+}
 
 
+
+/* Force black text in name cells of leaderboard */
+#leaderboardTable tbody td:first-child {
+  color: #000 !important;
+}

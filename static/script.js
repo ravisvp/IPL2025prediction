@@ -468,6 +468,8 @@ if (leaderboard.length >= 1) {
   
               const displayName = entry.name || "User";
               nameCell.innerHTML = `<div>${rankNumber}. ${icon}${displayName}</div>`;
+              nameCell.style.setProperty("color", "#000", "important");
+
   
               // Add recent ✅❌ emoji streaks (last 5 games)
               const predUser = predictions.find(p => p.name === displayName);
@@ -496,18 +498,31 @@ if (leaderboard.length >= 1) {
               row.appendChild(pointsCell);
   
               const hitsCell = document.createElement("td");
-              hitsCell.textContent = entry.total_hits ?? 0;
               hitsCell.style.backgroundColor = "#008000";
               hitsCell.style.color = "#fff";
-  
-              // Accuracy badge (🟢🟡🔴)
+              
+              // Create a flex container for hit count + badge
+              const hitContainer = document.createElement("div");
+              hitContainer.style.display = "flex";
+              hitContainer.style.alignItems = "center";
+              hitContainer.style.justifyContent = "center";
+              hitContainer.style.gap = "6px";
+              
+              const hitText = document.createElement("span");
+              hitText.textContent = entry.total_hits ?? 0;
+              
+              // Accuracy badge
               const accuracy = gamesCompleted > 0 ? (entry.total_hits / gamesCompleted) * 100 : 0;
               const badge = document.createElement("span");
               badge.className = "accuracy-badge";
               if (accuracy > 70) badge.classList.add("green-badge");
               else if (accuracy >= 50) badge.classList.add("yellow-badge");
               else badge.classList.add("red-badge");
-              hitsCell.appendChild(badge);
+              
+              hitContainer.appendChild(hitText);
+              hitContainer.appendChild(badge);
+              hitsCell.appendChild(hitContainer);
+              
   
               row.appendChild(hitsCell);
   
