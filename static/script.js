@@ -337,28 +337,22 @@
     if (streakContainer) streakContainer.innerHTML = "";
   
     Promise.all([
-      fetch("/get_predictions").then(r => {
-        if (!r.ok) throw new Error("Failed to fetch predictions");
-        return r.json();
-      }),
+      fetch("/get_predictions").then(r => r.json()),
       fetch("/actual_results").then(r => r.json())
     ])
       .then(([predictions, actualData]) => {
-        let gamesCompleted = actualData?.actualResults?.length || 0;
+        const gamesCompleted = actualData?.actualResults?.length || 0;
         let topHitStreak = { name: "", streak: 0 };
         let topMissStreak = { name: "", streak: 0 };
   
         predictions.forEach(pred => {
           let maxHit = 0, maxMiss = 0, curHit = 0, curMiss = 0;
           const actual = actualData?.actualResults || [];
-          const userPreds = Array.isArray(pred.predictions)
-            ? pred.predictions
-            : JSON.parse(pred.predictions || "[]");
+          const userPreds = Array.isArray(pred.predictions) ? pred.predictions : JSON.parse(pred.predictions || "[]");
   
           for (let i = 0; i < actual.length; i++) {
             const predicted = userPreds[i]?.toUpperCase();
             const correct = actual[i]?.toUpperCase();
-  
             if (predicted === correct) {
               curHit++;
               maxHit = Math.max(maxHit, curHit);
@@ -370,12 +364,8 @@
             }
           }
   
-          if (maxHit > topHitStreak.streak) {
-            topHitStreak = { name: pred.name, streak: maxHit };
-          }
-          if (maxMiss > topMissStreak.streak) {
-            topMissStreak = { name: pred.name, streak: maxMiss };
-          }
+          if (maxHit > topHitStreak.streak) topHitStreak = { name: pred.name, streak: maxHit };
+          if (maxMiss > topMissStreak.streak) topMissStreak = { name: pred.name, streak: maxMiss };
         });
   
         if (streakContainer) {
@@ -386,98 +376,159 @@
               </div>
               <div class="streak-box miss-glow">
                 <span class="emoji">💀</span>Longest Miss Streak: <strong>${topMissStreak.name}</strong> (${topMissStreak.streak} in a row)
-              </div>
-            `;
+              </div>`;
           }, 3000);
         }
   
-        // Leaderboard
         fetch("/leaderboard")
           .then(r => r.json())
           .then(leaderboard => {
+
+            // === 🏆 DYNAMIC PODIUM DISPLAY BASED ON RANK ===
+const podiumContainer = document.getElementById("podiumContainer");
+podiumContainer.innerHTML = ""; // Clear old content
+
+if (leaderboard.length >= 1) {
+  const top1 = [];
+  const top2 = [];
+  const top3 = [];
+  let currentRank = 1;
+  let prevPoints = null;
+
+  for (let i = 0; i < leaderboard.length; i++) {
+    const entry = leaderboard[i];
+    if (entry.total_points !== prevPoints) {
+      currentRank = top1.length ? (top2.length ? 3 : 2) : 1;
+    }
+
+    if (currentRank === 1) top1.push(entry);
+    else if (currentRank === 2) top2.push(entry);
+    else if (currentRank === 3) top3.push(entry);
+
+    prevPoints = entry.total_points;
+    if (top3.length > 0) break; // only take first 3 ranks
+  }
+
+  const podiumHTML = `
+    <div class="podium">
+      <div class="podium-item silver">
+        <div class="emoji">🥈</div>
+        ${top2.map(p => `<div class="name">${p.name}</div><div class="points">${p.total_points} pts</div>`).join("")}
+      </div>
+      <div class="podium-item gold">
+        <div class="emoji">🥇</div>
+        ${top1.map(p => `<div class="name">${p.name}</div><div class="points">${p.total_points} pts</div>`).join("")}
+      </div>
+      <div class="podium-item bronze">
+        <div class="emoji">🥉</div>
+        ${top3.map(p => `<div class="name">${p.name}</div><div class="points">${p.total_points} pts</div>`).join("")}
+      </div>
+    </div>
+  `;
+
+  podiumContainer.innerHTML = podiumHTML;
+}
+
             if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
               tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
-            } else {
-              let currentRank = 1;
-              let prevPoints = null;
-  
-              leaderboard.forEach((entry, idx) => {
-                const row = document.createElement("tr");
-  
-                // Dense ranking: same points = same rank, next group rank +1
-                if (entry.total_points !== prevPoints) {
-                  currentRank = currentRank;
-                }
-  
-                const rankNumber = currentRank;
-                prevPoints = entry.total_points;
-  
-                if (idx + 1 < leaderboard.length) {
-                  const nextPoints = leaderboard[idx + 1].total_points;
-                  if (nextPoints !== prevPoints) {
-                    currentRank++;
-                  }
-                }
-  
-                const displayName = entry.name || "User";
-  
-                // 🎖️ Add emoji + glow text classes
-                const nameCell = document.createElement("td");
-                let icon = "";
-                if (rankNumber === 1) {
-                  icon = "🏆 ";
-                  nameCell.classList.add("top-predictor");
-                  row.classList.add("top-rank-gold");
-                } else if (rankNumber === 2) {
-                  icon = "🥈 ";
-                  nameCell.classList.add("second-predictor");
-                  row.classList.add("top-rank-silver");
-                } else if (rankNumber === 3) {
-                  icon = "🥉 ";
-                  nameCell.classList.add("third-predictor");
-                  row.classList.add("top-rank-bronze");
-                } else {
-                  row.classList.add("leaderboard-row");
-                }
-  
-                nameCell.innerHTML = `${rankNumber}. ${icon}${displayName}`;
-                if (rankNumber > 3) nameCell.classList.add("regular-predictor");
-                nameCell.style.color = "#000";
-                nameCell.style.fontWeight = "bold";
-                nameCell.style.whiteSpace = "nowrap";
-                row.appendChild(nameCell);
-  
-                const pointsCell = document.createElement("td");
-                pointsCell.textContent = entry.total_points ?? 0;
-                pointsCell.style.backgroundColor = pointsCell.textContent > 0 ? "#008000" : "#2f2f2f";
-                pointsCell.style.color = "#fff";
-                row.appendChild(pointsCell);
-  
-                const hitsCell = document.createElement("td");
-                hitsCell.textContent = entry.total_hits ?? 0;
-                hitsCell.style.backgroundColor = hitsCell.textContent > 0 ? "#008000" : "#2f2f2f";
-                hitsCell.style.color = "#fff";
-                row.appendChild(hitsCell);
-  
-                const missesCell = document.createElement("td");
-                missesCell.textContent = entry.total_misses ?? 0;
-                missesCell.style.backgroundColor = missesCell.textContent > 0 ? "#B22222" : "#2f2f2f";
-                missesCell.style.color = "#fff";
-                row.appendChild(missesCell);
-  
-                const gamesCompletedCell = document.createElement("td");
-                gamesCompletedCell.textContent = gamesCompleted;
-                gamesCompletedCell.style.backgroundColor = "#2f2f2f";
-                gamesCompletedCell.style.color = "#fff";
-                row.appendChild(gamesCompletedCell);
-  
-                tableBody.appendChild(row);
-              });
+              return;
             }
+  
+            let currentRank = 1;
+            let prevPoints = null;
+  
+            leaderboard.forEach((entry, idx) => {
+              const row = document.createElement("tr");
+  
+              if (entry.total_points !== prevPoints) currentRank = currentRank;
+              const rankNumber = currentRank;
+              prevPoints = entry.total_points;
+              if (idx + 1 < leaderboard.length) {
+                const nextPoints = leaderboard[idx + 1].total_points;
+                if (nextPoints !== prevPoints) currentRank++;
+              }
+  
+              const nameCell = document.createElement("td");
+              let icon = "";
+              if (rankNumber === 1) {
+                icon = "🏆 ";
+                nameCell.classList.add("top-predictor");
+                row.classList.add("top-rank-gold");
+              } else if (rankNumber === 2) {
+                icon = "🥈 ";
+                nameCell.classList.add("second-predictor");
+                row.classList.add("top-rank-silver");
+              } else if (rankNumber === 3) {
+                icon = "🥉 ";
+                nameCell.classList.add("third-predictor");
+                row.classList.add("top-rank-bronze");
+              } else {
+                row.classList.add("leaderboard-row");
+              }
+  
+              const displayName = entry.name || "User";
+              nameCell.innerHTML = `<div>${rankNumber}. ${icon}${displayName}</div>`;
+  
+              // Add recent ✅❌ emoji streaks (last 5 games)
+              const predUser = predictions.find(p => p.name === displayName);
+              if (predUser) {
+                const userPreds = Array.isArray(predUser.predictions)
+                  ? predUser.predictions
+                  : JSON.parse(predUser.predictions || "[]");
+                const actual = actualData?.actualResults || [];
+                const emojiRow = document.createElement("div");
+                emojiRow.style.marginTop = "4px";
+                for (let i = Math.max(0, actual.length - 5); i < actual.length; i++) {
+                  const pred = userPreds[i]?.toUpperCase();
+                  const act = actual[i]?.toUpperCase();
+                  const emoji = pred === act ? "✅" : "❌";
+                  emojiRow.innerHTML += `<span style="margin-right:3px;">${emoji}</span>`;
+                }
+                nameCell.appendChild(emojiRow);
+              }
+  
+              row.appendChild(nameCell);
+  
+              const pointsCell = document.createElement("td");
+              pointsCell.textContent = entry.total_points ?? 0;
+              pointsCell.style.backgroundColor = "#008000";
+              pointsCell.style.color = "#fff";
+              row.appendChild(pointsCell);
+  
+              const hitsCell = document.createElement("td");
+              hitsCell.textContent = entry.total_hits ?? 0;
+              hitsCell.style.backgroundColor = "#008000";
+              hitsCell.style.color = "#fff";
+  
+              // Accuracy badge (🟢🟡🔴)
+              const accuracy = gamesCompleted > 0 ? (entry.total_hits / gamesCompleted) * 100 : 0;
+              const badge = document.createElement("span");
+              badge.className = "accuracy-badge";
+              if (accuracy > 70) badge.classList.add("green-badge");
+              else if (accuracy >= 50) badge.classList.add("yellow-badge");
+              else badge.classList.add("red-badge");
+              hitsCell.appendChild(badge);
+  
+              row.appendChild(hitsCell);
+  
+              const missesCell = document.createElement("td");
+              missesCell.textContent = entry.total_misses ?? 0;
+              missesCell.style.backgroundColor = "#B22222";
+              missesCell.style.color = "#fff";
+              row.appendChild(missesCell);
+  
+              const gamesCompletedCell = document.createElement("td");
+              gamesCompletedCell.textContent = gamesCompleted;
+              gamesCompletedCell.style.backgroundColor = "#2f2f2f";
+              gamesCompletedCell.style.color = "#fff";
+              row.appendChild(gamesCompletedCell);
+  
+              tableBody.appendChild(row);
+            });
           });
       })
-      .catch(error => {
-        console.error("Error fetching data:", error);
+      .catch(err => {
+        console.error("Error in leaderboard:", err);
         tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
       });
   }

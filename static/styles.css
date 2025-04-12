@@ -974,5 +974,285 @@ tr.third-predictor td:first-child {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
+.sparkline-chart {
+  width: 60px;
+  height: 20px;
+  display: block;
+  margin-top: 4px;
+}
+
+
+.emoji-trend {
+  font-size: 16px;
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+
+.accuracy-badge {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 6px;
+  border-radius: 50%;
+}
+
+.green-badge {
+  background-color: #00cc66;
+}
+
+.yellow-badge {
+  background-color: #ffcc00;
+}
+
+.red-badge {
+  background-color: #ff3333;
+}
+
+/* 🌟 Glow effect on hover */
+#leaderboardTable tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 14px 4px rgba(255, 255, 255, 0.5);
+  transform: scale(1.01);
+  transition: all 0.25s ease-in-out;
+}
+
+/* 👑 Stronger pulsing crown for Rank 1 */
+.top-predictor::before {
+  content: "👑";
+  margin-right: 4px;
+  animation: crownPulse 0.9s infinite ease-in-out;
+  display: inline-block;
+}
+
+@keyframes crownPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.4;
+  }
+}
+
+/* Glowing Rank Effects for Mobile */
+@media (max-width: 768px) {
+  .top-rank-gold {
+    animation: gold-glow 2s infinite ease-in-out;
+    transform: scale(1.02);
+  }
+
+  .top-rank-silver {
+    animation: silver-glow 2s infinite ease-in-out;
+    transform: scale(1.02);
+  }
+
+  .top-rank-bronze {
+    animation: bronze-glow 2s infinite ease-in-out;
+    transform: scale(1.02);
+  }
+
+  @keyframes gold-glow {
+    0%, 100% { box-shadow: 0 0 8px gold; }
+    50% { box-shadow: 0 0 16px gold; }
+  }
+
+  @keyframes silver-glow {
+    0%, 100% { box-shadow: 0 0 8px silver; }
+    50% { box-shadow: 0 0 16px silver; }
+  }
+
+  @keyframes bronze-glow {
+    0%, 100% { box-shadow: 0 0 8px #cd7f32; }
+    50% { box-shadow: 0 0 16px #cd7f32; }
+  }
+
+  /* Touch feedback on leaderboard rows */
+  .scoreboard-table tr:active {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(0.98);
+    transition: transform 0.1s ease-in-out;
+  }
+}
+.podium-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  margin: 20px auto 10px;
+  padding-top: 10px;
+  flex-wrap: wrap;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+}
+
+.podium-item {
+  background: linear-gradient(to top, #4b0082, #7a3fd0);
+  border-radius: 10px 10px 0 0;
+  padding: 12px 10px 0 10px;
+  color: white;
+  font-weight: bold;
+  width: 80px;
+  min-height: 100px;
+  position: relative;
+  animation: popIn 1s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.podium-item .emoji {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.podium-item .name {
+  font-size: 0.9em;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.podium-item .points {
+  font-size: 0.8em;
+  opacity: 0.9;
+}
+
+/* Vary heights */
+.podium-item.first { height: 150px; background: linear-gradient(to top, gold, #ffe066); }
+.podium-item.second { height: 120px; background: linear-gradient(to top, silver, #ddd); }
+.podium-item.third { height: 100px; background: linear-gradient(to top, #cd7f32, #e8a35c); }
+
+@keyframes popIn {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  .podium {
+    gap: 10px;
+  }
+  .podium-item {
+    width: 70px;
+    font-size: 13px;
+  }
+}
+
+
+#podiumContainer {
+  background: url("https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTVweXc4MG12NDJqYml2emUxcGJteGw4c3hvdmYwdHRkMDdua3p3diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/iiDd7XoA8G8u6l9FtH/giphy.gif") center/cover no-repeat;
+  border-radius: 10px;
+  padding: 40px 0 20px;
+  margin: 20px auto;
+  text-align: center;
+  position: relative;
+}
+
+
+/* Podium wrapper */
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+/* Each podium item */
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 120px;
+  min-height: 140px;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+  position: relative;
+  background-color: #ddd;
+  color: #000; /* all names/points in black */
+  text-align: center;
+  margin: 10px 5px;
+}
+
+/* Medal color classes */
+.podium-item.gold {
+  background: gold;
+}
+.podium-item.silver {
+  background: silver;
+}
+.podium-item.bronze {
+  background: #cd7f32;
+}
+
+/* Medal emoji */
+.podium-item .emoji {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+
+/* Podium user names - multiple lines supported */
+.podium-item .name {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  margin: 2px 0;
+  max-width: 100%;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  white-space: normal;
+}
+
+/* Points below names */
+.podium-item .points {
+  font-size: 0.8rem;
+  font-weight: normal;
+  opacity: 0.85;
+}
+
+/* Responsive behavior for mobile */
+@media (max-width: 600px) {
+  .podium {
+    display: flex;
+    flex-direction: row !important; /* force horizontal layout */
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 10px;
+    gap: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important; /* prevent wrapping */
+  }
+
+  .podium-item {
+    min-width: 130px;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    transform: scale(0.95);
+  }
+}
+
+
+/* Ensure leaderboard names are always black */
+#leaderboardTable td:first-child {
+  color: #000 !important;
+}
+
 
 
