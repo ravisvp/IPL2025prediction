@@ -1316,3 +1316,49 @@ tr.third-predictor td:first-child {
 #leaderboardTable tbody td:first-child {
   color: #000 !important;
 }
+
+
+/* For completed games */
+.completed-game {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
+}
+
+/* For ongoing game - green border with pulse */
+.ongoing-game {
+  position: relative;
+  border: 3px solid #00ff00;
+  animation: pulse-border 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 255, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+  }
+}
+
+
+/* LIVE label inside header */
+.live-label {
+  display: inline-block;
+  background: #ff004f;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-top: 4px;
+  animation: pulseLive 1s infinite ease-in-out;
+}
+
+@keyframes pulseLive {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
