@@ -513,11 +513,28 @@ if (leaderboard.length >= 1) {
               
               // Accuracy badge
               const accuracy = gamesCompleted > 0 ? (entry.total_hits / gamesCompleted) * 100 : 0;
-              const badge = document.createElement("span");
-              badge.className = "accuracy-badge";
-              if (accuracy > 70) badge.classList.add("green-badge");
-              else if (accuracy >= 50) badge.classList.add("yellow-badge");
-              else badge.classList.add("red-badge");
+const badge = document.createElement("span");
+badge.className = "accuracy-badge";
+badge.title = `Accuracy: ${Math.round(accuracy)}%`; // Tooltip for desktop hover
+
+// Tooltip text for mobile (click-to-toggle)
+const tooltip = document.createElement("span");
+tooltip.className = "accuracy-tooltip";
+tooltip.textContent = `Accuracy: ${Math.round(accuracy)}%`;
+tooltip.style.display = "none";
+badge.appendChild(tooltip);
+
+// Toggle on click for mobile
+badge.addEventListener("click", (e) => {
+  e.stopPropagation();
+  tooltip.style.display = tooltip.style.display === "none" ? "block" : "none";
+});
+
+// Color logic
+if (accuracy > 70) badge.classList.add("green-badge");
+else if (accuracy >= 50) badge.classList.add("yellow-badge");
+else badge.classList.add("red-badge");
+
               
               hitContainer.appendChild(hitText);
               hitContainer.appendChild(badge);

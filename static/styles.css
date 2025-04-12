@@ -1008,6 +1008,33 @@ tr.third-predictor td:first-child {
   background-color: #ff3333;
 }
 
+.accuracy-badge {
+  position: relative;
+  cursor: pointer;
+}
+
+.accuracy-tooltip {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #222;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 100;
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .accuracy-tooltip {
+    top: 20px; /* Show below the dot on mobile */
+  }
+}
+
+
 /* 🌟 Glow effect on hover */
 #leaderboardTable tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.07);
