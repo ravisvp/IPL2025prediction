@@ -1387,7 +1387,7 @@ tr.third-predictor td:first-child {
   padding: 6px;
 }
 
-/* ✅ Sticky Name Column: Header Cell */
+/* Sticky first column - header */
 #predictionTable thead th:first-child {
   position: sticky;
   left: 0;
@@ -1395,23 +1395,28 @@ tr.third-predictor td:first-child {
   background-color: #4b0082;
   color: white;
   font-weight: bold;
-  min-width: 150px;
-  max-width: 180px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.15);
+  min-width: 120px;
+  white-space: nowrap;
+  /* ✅ Force stacking context */
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
-/* ✅ Sticky Name Column: Body Cell */
+/* Sticky first column - body */
 #predictionTable tbody td:first-child {
   position: sticky;
   left: 0;
   z-index: 4;
-  background-color: #ffffff;
+  background-color: #e0d4f5;
   color: #000;
   font-weight: bold;
-  min-width: 150px;
-  max-width: 180px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  min-width: 120px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.15);
+  will-change: transform;
+  backface-visibility: hidden;
 }
+
 
 /* Make the table wrapper scroll horizontally */
 .table-scroll {
@@ -1439,5 +1444,7 @@ tr.third-predictor td:first-child {
   min-width: 1800px;
   table-layout: fixed;
   border-collapse: collapse;
+   /* ✅ Add this to force GPU layer & improve sticky rendering */
+   transform: translateZ(0);
 }
 
