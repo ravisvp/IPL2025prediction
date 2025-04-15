@@ -1695,8 +1695,30 @@ function displayUpcomingGamePredictions() {
 
       const gameName = gamesList[upcomingGameIndex];
 
-      // Add countdown placeholder
-      const countdownBox = `<span id="matchCountdown" class="countdown-box">⏳ Loading...</span>`;
+      // Tally predictions for the current game
+      const counts = {};
+      predictions.forEach(pred => {
+        const preds = Array.isArray(pred.predictions) ? pred.predictions : JSON.parse(pred.predictions || "[]");
+        const prediction = (preds[upcomingGameIndex] || "-").toUpperCase();
+        if (prediction && prediction !== "-") {
+          counts[prediction] = (counts[prediction] || 0) + 1;
+        }
+      });
+
+      const countSummary = Object.entries(counts).map(([team, count]) => `${count} ${team}`).join(" / ");
+
+      // Add the summary to the title wrapper (to the right)
+      const wrapper = document.querySelector(".prediction-title-wrapper");
+      if (wrapper) {
+        const existing = document.getElementById("upcomingGameSummary");
+        if (existing) existing.remove();
+
+        const summaryBox = document.createElement("span");
+        summaryBox.id = "upcomingGameSummary";
+        summaryBox.className = "summary-box";
+        summaryBox.textContent = countSummary;
+        wrapper.appendChild(summaryBox);
+      }
 
       let html = `
         <div class="scrollable-table-wrapper">
@@ -1704,7 +1726,6 @@ function displayUpcomingGamePredictions() {
             <thead>
               <tr>
                 <th class="sticky-left-col">Game ${upcomingGameIndex + 1}: ${gameName}</th>
-
       `;
 
       predictions.forEach((pred, idx) => {
@@ -1742,24 +1763,11 @@ function displayUpcomingGamePredictions() {
 
       container.innerHTML = html;
 
-      // Add countdown timer element next to existing "Upcoming Game Predictions" title
-      const wrapper = document.querySelector(".prediction-title-wrapper");
-if (wrapper) {
-  const countdownBox = document.createElement("span");
-  countdownBox.id = "matchCountdownBox";
-  countdownBox.className = "countdown-violet-box";
-  countdownBox.textContent = "⏳ Loading...";
-  wrapper.appendChild(countdownBox);
-}
-
-
-
-      // MATCH COUNTDOWN TIMER
+      // Countdown timer
+      const countdownEl = document.getElementById("matchCountdownBox");
       const upcomingSchedule = matchSchedule.find(m => m.game === upcomingGameIndex + 1);
-      if (upcomingSchedule) {
+      if (upcomingSchedule && countdownEl) {
         const matchTime = new Date(upcomingSchedule.startTime).getTime();
-        const countdownEl = document.getElementById("matchCountdownBox");
-
 
         function updateCountdown() {
           const now = new Date().getTime();
@@ -1774,7 +1782,6 @@ if (wrapper) {
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
           countdownEl.textContent = `⏳ ${hours}h ${minutes}m ${seconds}s`;
         }
 

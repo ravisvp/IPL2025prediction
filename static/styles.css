@@ -1504,3 +1504,31 @@ tr.third-predictor td:first-child {
   background-color: #6B00A8; /* Deep violet */
   border-color: #fff;
 }
+
+
+.upcoming-heading-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.prediction-summary {
+  font-weight: bold;
+  font-size: 16px;
+  color: #fff;
+  padding: 6px 12px;
+  background-color: #4b0082;
+  border-radius: 8px;
+}
+
+.summary-box {
+  display: inline-block;
+  margin-left: 12px;
+  font-weight: bold;
+  background-color: #fff7cc;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
