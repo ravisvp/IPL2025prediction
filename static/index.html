@@ -33,6 +33,8 @@
     <!-- Buttons -->
     <button id="enterPredictionBtn" class="action-btn">Enter Predictions</button>
     <button id="enterCommentBtn" class="action-btn">Enter Comment</button>
+<button id="scrollToPodiumBtn" class="action-btn">Rank Podium</button>
+
 
     <!-- Tabs for switching views -->
     <div class="tabs">
@@ -131,20 +133,28 @@
    
    
     
-    <!-- All Predictions Section (hidden by default) -->
-
-
-    
+   <!-- All Predictions Section (hidden by default) -->
 <div id="allPredictionsContainer" style="display: none;">
   <h2>All Predictions</h2>
+
+  <!-- 🔄 New Compare Predictions UI -->
+  <div id="compareSelector" class="compare-selector">
+    <div class="compare-instructions">Click up to 4 names to compare:</div>
+    <div id="nameChipsContainer" class="chip-container"></div>
+    <button id="compareButton" class="action-btn" disabled>Compare</button>
+    <button id="resetCompareBtn" class="action-btn" style="display:none;">Show All Predictions</button>
+
+  </div>
+
+  <!-- 🔽 Prediction Table -->
   <div class="table-scroll" id="predictionWrapper">
     <table id="predictionTable">
-  
-        <thead id="predictionTableHeader"></thead>
-        <tbody></tbody>
-      </table>
-  
+      <thead id="predictionTableHeader"></thead>
+      <tbody></tbody>
+    </table>
   </div>
+
+  <!-- 🔙 Back Button -->
   <button class="action-btn" onclick="showExpertTab()">Back to Expert Predictions</button>
 </div>
 
