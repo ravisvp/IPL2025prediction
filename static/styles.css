@@ -1532,3 +1532,99 @@ tr.third-predictor td:first-child {
   border-radius: 6px;
   font-size: 14px;
 }
+
+.sticky-left-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: #e0d4f5; /* Same as name cell bg */
+  color: #000;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.pick-circle {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  border-radius: 50%;
+  margin: 2px;
+}
+.game-pick-summary {
+  margin-top: 4px;
+}
+
+
+.button-group-wrapper {
+  background-color: #4b0082; /* Violet */
+  border-radius: 12px;
+  padding: 20px 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px auto;
+  max-width: 700px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.button-group-wrapper .action-btn {
+  background: linear-gradient(145deg, #34c759, #2ca84f); /* Fresh green gradient */
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(76, 255, 160, 0.4); /* Soft glow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.button-group-wrapper .action-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 18px rgba(76, 255, 160, 0.8); 
+}
+/* Ripple Container */
+.action-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple Circle */
+.action-btn::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  transform: scale(0);
+  opacity: 1;
+  animation: rippleEffect 0.6s ease-out;
+}
+
+@keyframes rippleEffect {
+  to {
+    width: 200%;
+    height: 200%;
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: absolute;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transform: scale(0);
+  animation: rippleEffect 0.6s ease-out;
+  pointer-events: none;
+}

@@ -31,17 +31,27 @@
   <div class="container fade-in" id="main-view">
 
     <!-- Buttons -->
-    <button id="enterPredictionBtn" class="action-btn">Enter Predictions</button>
-    <button id="enterCommentBtn" class="action-btn">Enter Comment</button>
-<button id="scrollToPodiumBtn" class="action-btn">Rank Podium</button>
+   <!-- Violet Wrapper for Buttons -->
+<div class="button-group-wrapper">
+  <button id="enterPredictionBtn" class="action-btn">Enter Predictions</button>
+  <button id="enterCommentBtn" class="action-btn">Enter Comment</button>
+  <button id="scrollToPodiumBtn" class="action-btn">Rank Podium</button>
+  <button id="tab-expert" class="action-btn" onclick="showExpertTab()">Expert Predictions</button>
+  <button id="tab-all" class="action-btn" onclick="showAllPredictionsTab()">View Predictions</button>
+  <button id="buddyCompareBtn" class="action-btn">🧑‍🤝‍🧑 Compare</button>
+
+
+</div>
+
 
 
     <!-- Tabs for switching views -->
+<!--
     <div class="tabs">
       <button id="tab-expert" class="tab" onclick="showExpertTab()">Expert Predictions</button>
       <button id="tab-all" class="tab" onclick="showAllPredictionsTab()">View Predictions</button>
     </div>
-
+-->
     <!-- Statistics Section -->
     <div id="statisticsContainer" class="table-scroll">
       <h2 class="statistics-title">Prediction Statistics</h2>

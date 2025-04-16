@@ -1,4 +1,6 @@
 (function(){
+
+  let skipAutoScroll = false;  // ✅ GLOBAL FLAG to control scroll from Buddy Compare
   // ----- Data and Utility Functions -----
   const gamesList = [
     "RCB vs KKR",
@@ -309,25 +311,34 @@
     displayLeaderboard();
     
   }
+
   function showAllPredictionsTab(){
     document.getElementById("scoreboardContainer").style.display = "none";
     document.getElementById("allPredictionsContainer").style.display = "block";
     document.getElementById("tab-all").classList.add("active");
     document.getElementById("tab-expert").classList.remove("active");
     displayPredictions();
-     // ✅ Delay the scroll until after render
-  setTimeout(() => {
-    requestAnimationFrame(() => {
-      const scrollTarget = document.querySelector("#predictionWrapper");
-      if (scrollTarget) {
-        scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
-        console.log("✅ Scroll triggered to predictionWrapper");
-      } else {
-        console.warn("⚠️ predictionWrapper not found for scrolling");
-      }
-    });
-  }, 500);
+  
+    // ✅ Only scroll if not triggered by Buddy Compare
+    if (!skipAutoScroll) {
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          const scrollTarget = document.querySelector("#predictionWrapper");
+          if (scrollTarget) {
+            scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+            console.log("✅ Scroll triggered to predictionWrapper");
+          } else {
+            console.warn("⚠️ predictionWrapper not found for scrolling");
+          }
+        });
+      }, 500);
+    }
+  
+    // ✅ Reset flag after it's used
+    skipAutoScroll = false;
   }
+  
+
   function showPredictionForm(){
     console.log("showPredictionForm called");
     document.getElementById("main-view").style.display = "none";
@@ -1091,9 +1102,12 @@ else badge.classList.add("red-badge");
       .then(response => response.json())
       .then(actualData => {
         window.actualResults = actualData?.actualResults || [];
+        window.allPredictionsRaw = [];  // Initialize here
         const gamesCompleted = window.actualResults.length;
   
-        generateDetailedPredictionTableHeader();
+        
+
+        
   
         const headerRow = document.querySelector("#predictionTable thead tr");
         if (headerRow) {
@@ -1166,6 +1180,10 @@ else badge.classList.add("red-badge");
           })
           .then(predictions => {
             console.log("Detailed predictions count:", predictions.length);
+
+            window.allPredictionsRaw = predictions; // ✅ Make available to header
+            generateDetailedPredictionTableHeader(predictions);
+
   
             if (!Array.isArray(predictions) || predictions.length === 0) {
               tableBody.innerHTML += `<tr><td colspan="${1 + gamesList.length + 4 + 2 + 1 + 2 + 1}">No predictions available</td></tr>`;
@@ -1175,6 +1193,8 @@ else badge.classList.add("red-badge");
                 const nameCell = row.insertCell();
                 nameCell.innerText = prediction.name || "User";
                 nameCell.style.backgroundColor = nameCellBgColor;
+                nameCell.classList.add("sticky-left-col");
+
                 nameCell.style.color = nameCellTextColor;
                 nameCell.style.fontWeight = "bold";
                 nameCell.style.whiteSpace = "nowrap";
@@ -1240,26 +1260,27 @@ else badge.classList.add("red-badge");
               setupCompareChips(predictions);
   
               // ✅ Auto-scroll to ongoing game column
-              setTimeout(() => {
-                const headerRow = document.querySelector("#predictionTable thead tr");
-                const ongoingHeader = headerRow?.querySelector("th.ongoing-game");
-                const scrollWrapper = document.getElementById('predictionWrapper');
-  
-                console.log("🧪 .table-scroll found:", !!scrollWrapper);
-                console.log("🧪 .ongoing-game header found:", !!ongoingHeader);
-  
-                if (scrollWrapper && ongoingHeader) {
-                  const offset = ongoingHeader.offsetLeft;
-                  console.log("📦 Ongoing header offsetLeft:", offset);
-  
-                  requestAnimationFrame(() => {
-                    scrollWrapper.scrollLeft = offset - 100;
-                    console.log("✅ Scrolled to:", ongoingHeader.textContent);
-                  });
-                } else {
-                  console.warn("⚠️ Could not scroll — scrollWrapper or ongoingHeader missing");
-                }
-              }, 800);
+             // ✅ Auto-scroll to ongoing game column (fix)
+             if (!skipAutoScroll) {
+             setTimeout(() => {
+  const scrollWrapper = document.getElementById('predictionWrapper');
+  const ongoingHeader = document.querySelector("#predictionTable thead th.ongoing-game");
+
+  console.log("🧪 .table-scroll found:", !!scrollWrapper);
+  console.log("🧪 .ongoing-game header found:", !!ongoingHeader);
+
+  if (scrollWrapper && ongoingHeader) {
+    const offset = ongoingHeader.offsetLeft;
+
+    // Apply scroll
+    scrollWrapper.scrollLeft = offset - 60; // Fine-tune offset if needed
+    console.log("✅ Scrolled to:", ongoingHeader.textContent);
+  } else {
+    console.warn("⚠️ Could not scroll — missing wrapper or ongoing column");
+  }
+}, 500);
+} // You had 800ms; reduce for faster response
+skipAutoScroll = false;  // ✅ reset regardless
             }
           })
           .catch(error => {
@@ -1603,45 +1624,97 @@ displayComments();
     displayFinalsPredictions();
     displayStatistics();
     generateDetailedPredictionTableHeader();
+
   });
-  function generateDetailedPredictionTableHeader(){
+  
+  function generateDetailedPredictionTableHeader(predictions) {
     const header = document.getElementById("predictionTableHeader");
     header.innerHTML = "";
     const row = document.createElement("tr");
-    let th = document.createElement("th");
-    th.innerText = "Name";
-    row.appendChild(th);
-    gamesList.forEach(game=>{
-      th = document.createElement("th");
-      th.innerText = game;
+  
+    // Name Column
+    const nameHeader = document.createElement("th");
+    nameHeader.innerText = "Name";
+    row.appendChild(nameHeader);
+  
+    const gamesCompleted = window.actualResults?.length || 0;
+  
+    // Count how many picked each team per game
+    const gamePickCounts = {};
+    predictions.forEach(pred => {
+      const picks = Array.isArray(pred.predictions)
+        ? pred.predictions
+        : JSON.parse(pred.predictions || "[]");
+      picks.forEach((team, i) => {
+        team = team?.toUpperCase();
+        if (!gamePickCounts[i]) gamePickCounts[i] = {};
+        if (team) gamePickCounts[i][team] = (gamePickCounts[i][team] || 0) + 1;
+      });
+    });
+  
+    gamesList.forEach((game, index) => {
+      const th = document.createElement("th");
+      const [team1, , team2] = game.split(" ");
+  
+      const team1Count = gamePickCounts[index]?.[team1] || 0;
+      const team2Count = gamePickCounts[index]?.[team2] || 0;
+  
+      // Set class if this is the ongoing game
+      if (index < gamesCompleted) {
+        th.classList.add("completed-game");
+      } else if (index === gamesCompleted) {
+        th.classList.add("ongoing-game");
+
+        const liveLabel = document.createElement("div");
+  liveLabel.className = "live-label";
+  liveLabel.innerText = "LIVE";
+  th.appendChild(liveLabel);
+      }
+
+
+  
+      // Game title
+      const gameTitle = document.createElement("div");
+      gameTitle.className = "game-title";
+      gameTitle.innerText = game;
+  
+      // Pick summary
+      const pickSummary = document.createElement("div");
+      pickSummary.className = "game-pick-summary";
+      pickSummary.innerHTML = `
+        <span class="pick-circle" style="background:${teamColors[team1] || '#bbb'}">${team1Count}</span>
+        <span class="pick-circle" style="background:${teamColors[team2] || '#bbb'}">${team2Count}</span>
+      `;
+  
+      th.appendChild(gameTitle);
+      th.appendChild(pickSummary);
       row.appendChild(th);
     });
-    for (let i = 1; i <= 4; i++){
-      th = document.createElement("th");
+  
+    // Ranks
+    for (let i = 1; i <= 4; i++) {
+      const th = document.createElement("th");
       th.innerText = `Rank ${i}`;
       row.appendChild(th);
     }
-    for (let i = 1; i <= 2; i++){
-      th = document.createElement("th");
+  
+    // Finals
+    for (let i = 1; i <= 2; i++) {
+      const th = document.createElement("th");
       th.innerText = `Final ${i}`;
       row.appendChild(th);
     }
-    th = document.createElement("th");
-    th.innerText = "Winner";
-    row.appendChild(th);
-    // New headers for Purple Cap and Orange Cap
-    th = document.createElement("th");
-    th.innerText = "Purple Cap";
-    row.appendChild(th);
-    th = document.createElement("th");
-    th.innerText = "Orange Cap";
-    row.appendChild(th);
-    
-    th = document.createElement("th");
-    th.innerText = "Points";
-    row.appendChild(th);
+  
+    // Winner + Cap + Points
+    ["Winner", "Purple Cap", "Orange Cap", "Points"].forEach(title => {
+      const th = document.createElement("th");
+      th.innerText = title;
+      row.appendChild(th);
+    });
+  
     header.appendChild(row);
   }
+  
   window.showExpertTab = showExpertTab;
   window.showAllPredictionsTab = showAllPredictionsTab;
   window.showCommentForm = showCommentForm;
@@ -1653,13 +1726,12 @@ window.displayComments = displayComments;
   window.displayFinalsPredictions = displayFinalsPredictions;
   window.displayPredictions = displayPredictions;
 })();
-
 // Match schedule with game number and start time (24-hour format, in local time or UTC)
 const matchSchedule = [
   { game: 24, teams: "DC vs RCB", startTime: "2025-04-09T10:00:00" }
-
   // Add more games as needed
 ];
+
 
 
 
@@ -1797,14 +1869,44 @@ function displayUpcomingGamePredictions() {
 
 
 
-
 // Ensure upcoming predictions display on load
 window.addEventListener('load', function() {
   if (document.getElementById("upcomingPredictionTableContainer")) {
     displayUpcomingGamePredictions();
   }
-});
+  const buddyBtn = document.getElementById("buddyCompareBtn");
+if (buddyBtn) {
+  buddyBtn.addEventListener("click", () => {
+    skipAutoScroll = true; // ✅ Prevent predictionWrapper scroll
+    console.log("👥 Buddy Compare clicked: skipAutoScroll set to TRUE");
 
+    showAllPredictionsTab();
+
+    const observer = new MutationObserver(() => {
+      const compareBox = document.getElementById("compareSelector");
+      if (compareBox && compareBox.offsetParent !== null) {
+        compareBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        console.log("👥 Scrolled to Compare Selector");
+        skipAutoScroll = false; // ✅ Reset after scroll
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(document.getElementById("allPredictionsContainer"), {
+      childList: true,
+      subtree: true
+    });
+  });
+}
+
+ 
+}); // ✅ <-- this was missing
+
+
+
+
+    
+ 
 
 let selectedNamesToCompare = [];
 
@@ -1856,3 +1958,19 @@ function setupCompareChips(predictions) {
 
 
 
+document.querySelectorAll('.action-btn').forEach(btn => {
+  btn.addEventListener('click', function (e) {
+    const circle = document.createElement('span');
+    const rect = this.getBoundingClientRect();
+
+    circle.style.left = `${e.clientX - rect.left}px`;
+    circle.style.top = `${e.clientY - rect.top}px`;
+    circle.classList.add('ripple');
+
+    this.appendChild(circle);
+
+    setTimeout(() => {
+      circle.remove();
+    }, 600); // Match ripple animation duration
+  });
+});
