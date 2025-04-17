@@ -1628,3 +1628,35 @@ tr.third-predictor td:first-child {
   animation: rippleEffect 0.6s ease-out;
   pointer-events: none;
 }
+
+
+#heatmapTable {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+#heatmapTable th,
+#heatmapTable td {
+  padding: 6px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.heatmap-correct {
+  background-color: #28a745;
+  color: white;
+}
+
+.heatmap-wrong {
+  background-color: #dc3545;
+  color: white;
+}
+
+.heatmap-pending {
+  background-color: #6c757d;
+  color: white;
+}

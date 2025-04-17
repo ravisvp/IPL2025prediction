@@ -1373,6 +1373,7 @@ skipAutoScroll = false;  // ✅ reset regardless
 
 }
 
+
   
   function fetchPredictionsFallback(){
     const tableBody = document.getElementById("predictionTable").getElementsByTagName("tbody")[0];
@@ -1570,7 +1571,85 @@ skipAutoScroll = false;  // ✅ reset regardless
       });
   }
   
-
+  function displayHeatmap() {
+    const container = document.getElementById("heatmapContainer");
+    container.style.display = "block"; // ensure visible
+    container.innerHTML = "<p>Loading heatmap...</p>";
+  
+    Promise.all([
+      fetch("/get_predictions").then(r => r.json()),
+      fetch("/actual_results").then(r => r.json()),
+      fetch("/leaderboard").then(r => r.json()) // ⬅️ NEW: leaderboard
+    ])
+      .then(([predictions, actualData, leaderboard]) => {
+        console.log("✅ Predictions fetched for heatmap:", predictions);
+        console.log("✅ Actual results for heatmap:", actualData);
+  
+        const actualResults = actualData?.actualResults || [];
+        const numGames = window.gamesList.length;
+  
+        // 🧠 Map leaderboard ranks
+        const rankMap = {};
+        leaderboard.forEach((entry, index) => {
+          rankMap[entry.name] = index;
+        });
+  
+        // 🔃 Sort predictions based on leaderboard rank
+        predictions.sort((a, b) => {
+          const rankA = rankMap[a.name] ?? Infinity;
+          const rankB = rankMap[b.name] ?? Infinity;
+          return rankA - rankB;
+        });
+  
+        let html = `
+          <h2 class="violet-heading">Prediction Heatmap</h2>
+          <div class="table-scroll heatmap-scroll">
+            <table id="heatmapTable">
+              <thead><tr><th>Name</th>
+        `;
+  
+        for (let i = 0; i < numGames; i++) {
+          html += `<th>${i + 1}</th>`;
+        }
+  
+        html += `</tr></thead><tbody>`;
+  
+        predictions.forEach(pred => {
+          const name = pred.name || "User";
+          const picks = Array.isArray(pred.predictions)
+            ? pred.predictions
+            : JSON.parse(pred.predictions || "[]");
+  
+          html += `<tr><td class="heatmap-name">${name}</td>`;
+  
+          for (let i = 0; i < numGames; i++) {
+            const actual = actualResults[i]?.toUpperCase();
+            const predicted = picks[i]?.toUpperCase();
+  
+            let cellClass = "heatmap-pending";
+            if (actual) {
+              if (actual === predicted) cellClass = "heatmap-correct";
+              else cellClass = "heatmap-wrong";
+            }
+  
+            html += `<td class="${cellClass}"></td>`;
+          }
+  
+          html += `</tr>`;
+        });
+  
+        html += `</tbody></table></div>`;
+        container.innerHTML = html;
+  
+        container.scrollIntoView({ behavior: "smooth", block: "start" });
+      })
+      .catch(err => {
+        console.error("Error loading heatmap:", err);
+        container.innerHTML = "<p>Error loading heatmap.</p>";
+      });
+  }
+  
+  
   // ----- Attach Event Listeners and Expose Functions -----
   window.addEventListener("load", function(){
     const enterBtn = document.getElementById("enterPredictionBtn");
@@ -1580,6 +1659,24 @@ skipAutoScroll = false;  // ✅ reset regardless
     } else {
       console.error("Enter Predictions button not found.");
     }
+    const heatmapBtn = document.getElementById("heatmapBtn");
+if (heatmapBtn) {
+  console.log("🔥 Heatmap Button Found!");
+  heatmapBtn.addEventListener("click", () => {
+    console.log("🔥 Heatmap button clicked!");
+    displayHeatmap();  // 👈 this must be globally exposed with `window.displayHeatmap = ...`
+    const heatmapSection = document.getElementById("heatmapContainer");
+    if (heatmapSection) {
+      console.log("🧭 Scrolling to heatmap section...");
+      heatmapSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      console.warn("⚠️ heatmapContainer not found in DOM");
+    }
+  });
+} else {
+  console.warn("❌ Heatmap Button NOT found!");
+}
+
 
     const podiumBtn = document.getElementById("scrollToPodiumBtn");
     if (podiumBtn) {
@@ -1623,7 +1720,7 @@ displayComments();
       });
     displayFinalsPredictions();
     displayStatistics();
-    generateDetailedPredictionTableHeader();
+    generateDetailedPredictionTableHeader(predictions);
 
   });
   
@@ -1725,6 +1822,7 @@ window.displayComments = displayComments;
   window.submitUserPrediction = submitUserPrediction;
   window.displayFinalsPredictions = displayFinalsPredictions;
   window.displayPredictions = displayPredictions;
+  window.displayHeatmap = displayHeatmap;
 })();
 // Match schedule with game number and start time (24-hour format, in local time or UTC)
 const matchSchedule = [

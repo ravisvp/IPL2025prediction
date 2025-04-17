@@ -39,6 +39,8 @@
   <button id="tab-expert" class="action-btn" onclick="showExpertTab()">Expert Predictions</button>
   <button id="tab-all" class="action-btn" onclick="showAllPredictionsTab()">View Predictions</button>
   <button id="buddyCompareBtn" class="action-btn">🧑‍🤝‍🧑 Compare</button>
+  <button id="heatmapBtn" class="action-btn">Prediction Heatmap</button>
+
 
 
 </div>
@@ -171,6 +173,14 @@
   <!-- 🔙 Back Button -->
   <button class="action-btn" onclick="showExpertTab()">Back to Expert Predictions</button>
 </div>
+
+<div id="heatmapContainer" style="display: none;">
+  <h2 class="violet-heading">Prediction Accuracy Heatmap</h2>
+  <div class="table-scroll">
+    <table id="heatmapTable"></table>
+  </div>
+</div>
+
 
 
     <!-- ✅ Comments Display Section -->
