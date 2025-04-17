@@ -1660,3 +1660,39 @@ tr.third-predictor td:first-child {
   background-color: #6c757d;
   color: white;
 }
+
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(0, 255, 0, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.7);
+  }
+}
+
+@keyframes pulse-border-red {
+  0% {
+    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 0, 0, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.7);
+  }
+}
+
+.highlight-hit-streak {
+  border: 3px solid #00ff00;
+  animation: pulse-border 1.2s infinite;
+}
+
+.highlight-miss-streak {
+  border: 3px solid #ff0000;
+  animation: pulse-border-red 1.2s infinite;
+}
+

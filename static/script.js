@@ -1579,7 +1579,7 @@ skipAutoScroll = false;  // ✅ reset regardless
     Promise.all([
       fetch("/get_predictions").then(r => r.json()),
       fetch("/actual_results").then(r => r.json()),
-      fetch("/leaderboard").then(r => r.json()) // ⬅️ NEW: leaderboard
+      fetch("/leaderboard").then(r => r.json())
     ])
       .then(([predictions, actualData, leaderboard]) => {
         console.log("✅ Predictions fetched for heatmap:", predictions);
@@ -1588,21 +1588,67 @@ skipAutoScroll = false;  // ✅ reset regardless
         const actualResults = actualData?.actualResults || [];
         const numGames = window.gamesList.length;
   
-        // 🧠 Map leaderboard ranks
+        // 🧠 Rank map
         const rankMap = {};
         leaderboard.forEach((entry, index) => {
           rankMap[entry.name] = index;
         });
   
-        // 🔃 Sort predictions based on leaderboard rank
+        // 🔃 Sort by rank
         predictions.sort((a, b) => {
           const rankA = rankMap[a.name] ?? Infinity;
           const rankB = rankMap[b.name] ?? Infinity;
           return rankA - rankB;
         });
   
+        // 🔥 Identify longest streaks
+        let maxHitStreakInfo = { name: "", length: 0, startIndex: 0 };
+        let maxMissStreakInfo = { name: "", length: 0, startIndex: 0 };
+  
+        predictions.forEach(pred => {
+          const picks = Array.isArray(pred.predictions)
+            ? pred.predictions
+            : JSON.parse(pred.predictions || "[]");
+  
+          let curHit = 0, curMiss = 0;
+          let maxHit = 0, maxMiss = 0;
+          let hitStart = 0, missStart = 0;
+          let tempHitStart = 0, tempMissStart = 0;
+  
+          for (let i = 0; i < actualResults.length; i++) {
+            const actual = actualResults[i]?.toUpperCase();
+            const predicted = picks[i]?.toUpperCase();
+  
+            if (actual === predicted) {
+              curHit++;
+              if (curHit === 1) tempHitStart = i;
+              if (curHit > maxHit) {
+                maxHit = curHit;
+                hitStart = tempHitStart;
+              }
+              curMiss = 0;
+            } else {
+              curMiss++;
+              if (curMiss === 1) tempMissStart = i;
+              if (curMiss > maxMiss) {
+                maxMiss = curMiss;
+                missStart = tempMissStart;
+              }
+              curHit = 0;
+            }
+          }
+  
+          if (maxHit > maxHitStreakInfo.length) {
+            maxHitStreakInfo = { name: pred.name, length: maxHit, startIndex: hitStart };
+          }
+          if (maxMiss > maxMissStreakInfo.length) {
+            maxMissStreakInfo = { name: pred.name, length: maxMiss, startIndex: missStart };
+          }
+        });
+  
+        // 🧱 Build table
         let html = `
-          <h2 class="violet-heading">Prediction Heatmap</h2>
+          <h2 class="violet-heading">Prediction Accuracy Heatmap</h2>
           <div class="table-scroll heatmap-scroll">
             <table id="heatmapTable">
               <thead><tr><th>Name</th>
@@ -1632,7 +1678,24 @@ skipAutoScroll = false;  // ✅ reset regardless
               else cellClass = "heatmap-wrong";
             }
   
-            html += `<td class="${cellClass}"></td>`;
+            let extraClass = "";
+            if (
+              name === maxHitStreakInfo.name &&
+              i >= maxHitStreakInfo.startIndex &&
+              i < maxHitStreakInfo.startIndex + maxHitStreakInfo.length
+            ) {
+              extraClass = "highlight-hit-streak";
+            }
+  
+            if (
+              name === maxMissStreakInfo.name &&
+              i >= maxMissStreakInfo.startIndex &&
+              i < maxMissStreakInfo.startIndex + maxMissStreakInfo.length
+            ) {
+              extraClass = "highlight-miss-streak";
+            }
+  
+            html += `<td class="${cellClass} ${extraClass}"></td>`;
           }
   
           html += `</tr>`;
