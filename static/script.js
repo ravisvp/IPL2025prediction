@@ -317,7 +317,14 @@
     document.getElementById("allPredictionsContainer").style.display = "block";
     document.getElementById("tab-all").classList.add("active");
     document.getElementById("tab-expert").classList.remove("active");
+
+    if (pendingCompareNames && pendingCompareNames.length >= 2) {
+      console.log("✅ Showing filtered compare table for:", pendingCompareNames);
+      showComparedPredictions(window.allPredictionsRaw, pendingCompareNames);
+      pendingCompareNames = null;
+    } else {
     displayPredictions();
+    }
   
     // ✅ Only scroll if not triggered by Buddy Compare
     if (!skipAutoScroll) {
@@ -354,246 +361,248 @@
     displayFinalsPredictions();
   }
   
-  function displayLeaderboard() {
-    const tableBody = document.getElementById("leaderboardTable").getElementsByTagName("tbody")[0];
-    const streakContainer = document.getElementById("streakStats");
-    tableBody.innerHTML = "";
-    if (streakContainer) streakContainer.innerHTML = "";
-  
-    Promise.all([
-      fetch("/get_predictions").then(r => r.json()),
-      fetch("/actual_results").then(r => r.json())
-    ])
-      .then(([predictions, actualData]) => {
-        const gamesCompleted = actualData?.actualResults?.length || 0;
-        let topHitStreak = { name: "", streak: 0 };
-        let topMissStreak = { name: "", streak: 0 };
-  
-        predictions.forEach(pred => {
-          let maxHit = 0, maxMiss = 0, curHit = 0, curMiss = 0;
-          const actual = actualData?.actualResults || [];
-          const userPreds = Array.isArray(pred.predictions) ? pred.predictions : JSON.parse(pred.predictions || "[]");
-  
-          for (let i = 0; i < actual.length; i++) {
-            const predicted = userPreds[i]?.toUpperCase();
-            const correct = actual[i]?.toUpperCase();
-            if (predicted === correct) {
-              curHit++;
-              maxHit = Math.max(maxHit, curHit);
-              curMiss = 0;
-            } else {
-              curMiss++;
-              maxMiss = Math.max(maxMiss, curMiss);
-              curHit = 0;
-            }
+  let selectedNamesToCompare = [];
+  let pendingCompareNames = null;
+
+function displayLeaderboard() {
+  const tableBody = document.getElementById("leaderboardTable").getElementsByTagName("tbody")[0];
+  const streakContainer = document.getElementById("streakStats");
+  tableBody.innerHTML = "";
+  if (streakContainer) streakContainer.innerHTML = "";
+
+  Promise.all([
+    fetch("/get_predictions").then(r => r.json()),
+    fetch("/actual_results").then(r => r.json())
+  ])
+    .then(([predictions, actualData]) => {
+      const gamesCompleted = actualData?.actualResults?.length || 0;
+      let topHitStreak = { name: "", streak: 0 };
+      let topMissStreak = { name: "", streak: 0 };
+
+      predictions.forEach(pred => {
+        let maxHit = 0, maxMiss = 0, curHit = 0, curMiss = 0;
+        const actual = actualData?.actualResults || [];
+        const userPreds = Array.isArray(pred.predictions) ? pred.predictions : JSON.parse(pred.predictions || "[]");
+
+        for (let i = 0; i < actual.length; i++) {
+          const predicted = userPreds[i]?.toUpperCase();
+          const correct = actual[i]?.toUpperCase();
+          if (predicted === correct) {
+            curHit++;
+            maxHit = Math.max(maxHit, curHit);
+            curMiss = 0;
+          } else {
+            curMiss++;
+            maxMiss = Math.max(maxMiss, curMiss);
+            curHit = 0;
           }
-  
-          if (maxHit > topHitStreak.streak) topHitStreak = { name: pred.name, streak: maxHit };
-          if (maxMiss > topMissStreak.streak) topMissStreak = { name: pred.name, streak: maxMiss };
-        });
-  
-        if (streakContainer) {
-          setTimeout(() => {
-            streakContainer.innerHTML = `
-              <div class="streak-box hit-glow">
-                <span class="emoji">🔥</span>Longest Hit Streak: <strong>${topHitStreak.name}</strong> (${topHitStreak.streak} in a row)
-              </div>
-              <div class="streak-box miss-glow">
-                <span class="emoji">💀</span>Longest Miss Streak: <strong>${topMissStreak.name}</strong> (${topMissStreak.streak} in a row)
-              </div>`;
-          }, 3000);
         }
-  
-        fetch("/leaderboard")
-          .then(r => r.json())
-          .then(leaderboard => {
 
-            // === 🏆 DYNAMIC PODIUM DISPLAY BASED ON RANK ===
-const podiumContainer = document.getElementById("podiumContainer");
-podiumContainer.innerHTML = ""; // Clear old content
+        if (maxHit > topHitStreak.streak) topHitStreak = { name: pred.name, streak: maxHit };
+        if (maxMiss > topMissStreak.streak) topMissStreak = { name: pred.name, streak: maxMiss };
+      });
 
-if (leaderboard.length >= 1) {
-  const podiumWrapper = document.createElement("div");
-  podiumWrapper.className = "podium";
+      if (streakContainer) {
+        setTimeout(() => {
+          streakContainer.innerHTML = `
+            <div class="streak-box hit-glow">
+              <span class="emoji">🔥</span>Longest Hit Streak: <strong>${topHitStreak.name}</strong> (${topHitStreak.streak} in a row)
+            </div>
+            <div class="streak-box miss-glow">
+              <span class="emoji">💀</span>Longest Miss Streak: <strong>${topMissStreak.name}</strong> (${topMissStreak.streak} in a row)
+            </div>`;
+        }, 3000);
+      }
 
-  let currentRank = 1;
-  let prevPoints = null;
-  let rankCounter = 0;
+      fetch("/leaderboard")
+        .then(r => r.json())
+        .then(leaderboard => {
+          const podiumContainer = document.getElementById("podiumContainer");
+          podiumContainer.innerHTML = "";
 
-  for (let i = 0; i < leaderboard.length && currentRank <= 3; i++) {
-    const entry = leaderboard[i];
-    if (entry.total_points !== prevPoints) {
-      rankCounter++;
-      currentRank = rankCounter;
-    }
-
-    let rankClass = "";
-    let medal = "";
-    if (currentRank === 1) {
-      rankClass = "gold";
-      medal = "🥇";
-    } else if (currentRank === 2) {
-      rankClass = "silver";
-      medal = "🥈";
-    } else if (currentRank === 3) {
-      rankClass = "bronze";
-      medal = "🥉";
-    } else {
-      break;
-    }
-
-    const card = document.createElement("div");
-    card.className = `podium-item ${rankClass}`;
-    card.innerHTML = `
-      <div class="emoji">${medal}</div>
-      <div class="name">${entry.name}</div>
-      <div class="points">${entry.total_points} pts</div>
-    `;
-    podiumWrapper.appendChild(card);
-    prevPoints = entry.total_points;
-  }
-
-  podiumContainer.appendChild(podiumWrapper);
-}
-
-
-            if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
-              tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
-              return;
-            }
-  
+          if (leaderboard.length >= 1) {
+            const podiumWrapper = document.createElement("div");
+            podiumWrapper.className = "podium";
             let currentRank = 1;
             let prevPoints = null;
-  
-            leaderboard.forEach((entry, idx) => {
-              const row = document.createElement("tr");
-  
-              if (entry.total_points !== prevPoints) currentRank = currentRank;
-              const rankNumber = currentRank;
+            let rankCounter = 0;
+
+            for (let i = 0; i < leaderboard.length && currentRank <= 3; i++) {
+              const entry = leaderboard[i];
+              if (entry.total_points !== prevPoints) {
+                rankCounter++;
+                currentRank = rankCounter;
+              }
+
+              let rankClass = "", medal = "";
+              if (currentRank === 1) { rankClass = "gold"; medal = "🥇"; }
+              else if (currentRank === 2) { rankClass = "silver"; medal = "🥈"; }
+              else if (currentRank === 3) { rankClass = "bronze"; medal = "🥉"; }
+              else break;
+
+              const card = document.createElement("div");
+              card.className = `podium-item ${rankClass}`;
+              card.innerHTML = `
+                <div class="emoji">${medal}</div>
+                <div class="name">${entry.name}</div>
+                <div class="points">${entry.total_points} pts</div>
+              `;
+              podiumWrapper.appendChild(card);
               prevPoints = entry.total_points;
-              if (idx + 1 < leaderboard.length) {
-                const nextPoints = leaderboard[idx + 1].total_points;
-                if (nextPoints !== prevPoints) currentRank++;
-              }
-  
-              const nameCell = document.createElement("td");
-              let icon = "";
-              if (rankNumber === 1) {
-                icon = "🏆 ";
-                nameCell.classList.add("top-predictor");
-                row.classList.add("top-rank-gold");
-              } else if (rankNumber === 2) {
-                icon = "🥈 ";
-                nameCell.classList.add("second-predictor");
-                row.classList.add("top-rank-silver");
-              } else if (rankNumber === 3) {
-                icon = "🥉 ";
-                nameCell.classList.add("third-predictor");
-                row.classList.add("top-rank-bronze");
-              } else {
-                row.classList.add("leaderboard-row");
-              }
-  
-              const displayName = entry.name || "User";
-              nameCell.innerHTML = `<div>${rankNumber}. ${icon}${displayName}</div>`;
-              nameCell.style.setProperty("color", "#000", "important");
+            }
 
-  
-              // Add recent ✅❌ emoji streaks (last 5 games)
-              const predUser = predictions.find(p => p.name === displayName);
-              if (predUser) {
-                const userPreds = Array.isArray(predUser.predictions)
-                  ? predUser.predictions
-                  : JSON.parse(predUser.predictions || "[]");
-                const actual = actualData?.actualResults || [];
-                const emojiRow = document.createElement("div");
-                emojiRow.style.marginTop = "4px";
-                for (let i = Math.max(0, actual.length - 5); i < actual.length; i++) {
-                  const pred = userPreds[i]?.toUpperCase();
-                  const act = actual[i]?.toUpperCase();
-                  const emoji = pred === act ? "✅" : "❌";
-                  emojiRow.innerHTML += `<span style="margin-right:3px;">${emoji}</span>`;
-                }
-                nameCell.appendChild(emojiRow);
-              }
-  
-              row.appendChild(nameCell);
-  
-              const pointsCell = document.createElement("td");
-              pointsCell.textContent = entry.total_points ?? 0;
-              pointsCell.style.backgroundColor = "#008000";
-              pointsCell.style.color = "#fff";
-              row.appendChild(pointsCell);
-  
-              const hitsCell = document.createElement("td");
-              hitsCell.style.backgroundColor = "#008000";
-              hitsCell.style.color = "#fff";
-              
-              // Create a flex container for hit count + badge
-              const hitContainer = document.createElement("div");
-              hitContainer.style.display = "flex";
-              hitContainer.style.alignItems = "center";
-              hitContainer.style.justifyContent = "center";
-              hitContainer.style.gap = "6px";
-              
-              const hitText = document.createElement("span");
-              hitText.textContent = entry.total_hits ?? 0;
-              
-              // Accuracy badge
-              const accuracy = gamesCompleted > 0 ? (entry.total_hits / gamesCompleted) * 100 : 0;
-const badge = document.createElement("span");
-badge.className = "accuracy-badge";
-badge.title = `Accuracy: ${Math.round(accuracy)}%`; // Tooltip for desktop hover
+            podiumContainer.appendChild(podiumWrapper);
+          }
 
-// Tooltip text for mobile (click-to-toggle)
-const tooltip = document.createElement("span");
-tooltip.className = "accuracy-tooltip";
-tooltip.textContent = `Accuracy: ${Math.round(accuracy)}%`;
-tooltip.style.display = "none";
-badge.appendChild(tooltip);
+          if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='5'>No leaderboard data available</td></tr>";
+            return;
+          }
 
-// Toggle on click for mobile
-badge.addEventListener("click", (e) => {
-  e.stopPropagation();
-  tooltip.style.display = tooltip.style.display === "none" ? "block" : "none";
+          let currentRank = 1, prevPoints = null;
+          leaderboard.forEach((entry, idx) => {
+            const row = document.createElement("tr");
+            if (entry.total_points !== prevPoints) currentRank = currentRank;
+            const rankNumber = currentRank;
+            prevPoints = entry.total_points;
+            if (idx + 1 < leaderboard.length) {
+              const nextPoints = leaderboard[idx + 1].total_points;
+              if (nextPoints !== prevPoints) currentRank++;
+            }
+
+            const nameCell = document.createElement("td");
+            const displayName = entry.name || "User";
+            let icon = "";
+            if (rankNumber === 1) { icon = "🏆 "; nameCell.classList.add("top-predictor"); row.classList.add("top-rank-gold"); }
+            else if (rankNumber === 2) { icon = "🥈 "; nameCell.classList.add("second-predictor"); row.classList.add("top-rank-silver"); }
+            else if (rankNumber === 3) { icon = "🥉 "; nameCell.classList.add("third-predictor"); row.classList.add("top-rank-bronze"); }
+            else row.classList.add("leaderboard-row");
+
+            const wrapper = document.createElement("div");
+wrapper.style.display = "flex";
+wrapper.style.alignItems = "center";
+wrapper.style.gap = "8px";
+
+// Name content
+const nameSpan = document.createElement("span");
+nameSpan.innerHTML = `${rankNumber}. ${icon}${displayName}`;
+
+// Compare Button
+const compareBtn = document.createElement("button");
+compareBtn.innerHTML = "👥";
+compareBtn.title = "Buddy Compare";
+compareBtn.className = "buddy-circle-btn";
+
+compareBtn.addEventListener("click", () => {
+  const name = displayName;
+  const alreadySelected = selectedNamesToCompare.includes(name);
+
+  if (!alreadySelected) {
+    if (selectedNamesToCompare.length >= 4) {
+      alert("You can only compare up to 4 users.");
+      return;
+    }
+    selectedNamesToCompare.push(name);
+    compareBtn.classList.add("selected-buddy");
+  } else {
+    selectedNamesToCompare = selectedNamesToCompare.filter(n => n !== name);
+    compareBtn.classList.remove("selected-buddy");
+  }
+
+  if (selectedNamesToCompare.length === 2) {
+    console.log("🎯 Queued compare for:", selectedNamesToCompare);
+    skipAutoScroll = true;
+    pendingCompareNames = [...selectedNamesToCompare];
+    showAllPredictionsTab();
+  }
 });
 
-// Color logic
-if (accuracy > 70) badge.classList.add("green-badge");
-else if (accuracy >= 50) badge.classList.add("yellow-badge");
-else badge.classList.add("red-badge");
+// Add both to wrapper
+wrapper.appendChild(nameSpan);
+wrapper.appendChild(compareBtn);
 
-              
-              hitContainer.appendChild(hitText);
-              hitContainer.appendChild(badge);
-              hitsCell.appendChild(hitContainer);
-              
-  
-              row.appendChild(hitsCell);
-  
-              const missesCell = document.createElement("td");
-              missesCell.textContent = entry.total_misses ?? 0;
-              missesCell.style.backgroundColor = "#B22222";
-              missesCell.style.color = "#fff";
-              row.appendChild(missesCell);
-  
-              const gamesCompletedCell = document.createElement("td");
-              gamesCompletedCell.textContent = gamesCompleted;
-              gamesCompletedCell.style.backgroundColor = "#2f2f2f";
-              gamesCompletedCell.style.color = "#fff";
-              row.appendChild(gamesCompletedCell);
-  
-              tableBody.appendChild(row);
+// Append wrapper to nameCell
+nameCell.appendChild(wrapper);
+
+
+
+          
+
+            
+          
+
+            
+            nameCell.style.color = "#000";
+            row.appendChild(nameCell);
+
+            const pointsCell = document.createElement("td");
+            pointsCell.textContent = entry.total_points ?? 0;
+            pointsCell.style.backgroundColor = "#008000";
+            pointsCell.style.color = "#fff";
+            row.appendChild(pointsCell);
+
+            const hitsCell = document.createElement("td");
+            hitsCell.style.backgroundColor = "#008000";
+            hitsCell.style.color = "#fff";
+
+            const hitContainer = document.createElement("div");
+            hitContainer.style.display = "flex";
+            hitContainer.style.alignItems = "center";
+            hitContainer.style.justifyContent = "center";
+            hitContainer.style.gap = "6px";
+
+            const hitText = document.createElement("span");
+            hitText.textContent = entry.total_hits ?? 0;
+
+            const accuracy = gamesCompleted > 0 ? (entry.total_hits / gamesCompleted) * 100 : 0;
+            const badge = document.createElement("span");
+            badge.className = "accuracy-badge";
+            badge.title = `Accuracy: ${Math.round(accuracy)}%`;
+            const tooltip = document.createElement("span");
+            tooltip.className = "accuracy-tooltip";
+            tooltip.textContent = `Accuracy: ${Math.round(accuracy)}%`;
+            tooltip.style.display = "none";
+            badge.appendChild(tooltip);
+
+            badge.addEventListener("click", (e) => {
+              e.stopPropagation();
+              tooltip.style.display = tooltip.style.display === "none" ? "block" : "none";
             });
+
+            if (accuracy > 70) badge.classList.add("green-badge");
+            else if (accuracy >= 50) badge.classList.add("yellow-badge");
+            else badge.classList.add("red-badge");
+
+            hitContainer.appendChild(hitText);
+            hitContainer.appendChild(badge);
+            hitsCell.appendChild(hitContainer);
+            row.appendChild(hitsCell);
+
+            const missesCell = document.createElement("td");
+            missesCell.textContent = entry.total_misses ?? 0;
+            missesCell.style.backgroundColor = "#B22222";
+            missesCell.style.color = "#fff";
+            row.appendChild(missesCell);
+
+            const gamesCompletedCell = document.createElement("td");
+            gamesCompletedCell.textContent = gamesCompleted;
+            gamesCompletedCell.style.backgroundColor = "#2f2f2f";
+            gamesCompletedCell.style.color = "#fff";
+            row.appendChild(gamesCompletedCell);
+
+            tableBody.appendChild(row);
           });
-      })
-      .catch(err => {
-        console.error("Error in leaderboard:", err);
-        tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
-      });
-  }
-  
-  
+        });
+    })
+    .catch(err => {
+      console.error("Error in leaderboard:", err);
+      tableBody.innerHTML = "<tr><td colspan='5'>Error loading leaderboard</td></tr>";
+    });
+
+    
+    
+}
+
   
   // ----- Detailed Predictions Display -----
   function generateDetailedPredictionTableHeader() {
@@ -1182,6 +1191,12 @@ else badge.classList.add("red-badge");
             console.log("Detailed predictions count:", predictions.length);
 
             window.allPredictionsRaw = predictions; // ✅ Make available to header
+
+            if (pendingCompareNames && pendingCompareNames.length >= 2) {
+              console.log("✅ Showing filtered compare table for:", pendingCompareNames);
+              showComparedPredictions(window.allPredictionsRaw, pendingCompareNames);
+              pendingCompareNames = null;
+            }
             generateDetailedPredictionTableHeader(predictions);
 
   
@@ -1886,6 +1901,7 @@ window.displayComments = displayComments;
   window.displayFinalsPredictions = displayFinalsPredictions;
   window.displayPredictions = displayPredictions;
   window.displayHeatmap = displayHeatmap;
+  window.showComparedPredictions = showComparedPredictions;
 })();
 // Match schedule with game number and start time (24-hour format, in local time or UTC)
 const matchSchedule = [
@@ -2069,7 +2085,7 @@ if (buddyBtn) {
     
  
 
-let selectedNamesToCompare = [];
+
 
 function setupCompareChips(predictions) {
   const container = document.getElementById("nameChipsContainer");

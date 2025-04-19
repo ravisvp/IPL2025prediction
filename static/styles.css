@@ -1696,3 +1696,36 @@ tr.third-predictor td:first-child {
   animation: pulse-border-red 1.2s infinite;
 }
 
+.buddy-circle-btn {
+  background-color: #6c63ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  vertical-align: middle;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  margin-left: 6px;
+  padding: 0;
+}
+
+.buddy-circle-btn:hover {
+  transform: scale(1.1);
+}
+
+.buddy-circle-btn.selected-buddy {
+  background-color: #ff9800;
+  box-shadow: 0 0 8px #ff9800aa;
+}
+
+.selected-buddy {
+  outline: 3px solid #8e44ad;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #8e44ad;
+}
