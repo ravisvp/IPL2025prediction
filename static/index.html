@@ -157,10 +157,10 @@
   <div id="compareSelector" class="compare-selector">
     <div class="compare-instructions">Click up to 4 names to compare:</div>
     <div id="nameChipsContainer" class="chip-container"></div>
-    <button id="compareButton" class="action-btn" disabled>Compare</button>
+    <button id="compareNowBtn" class="action-btn" style="display: none;">Compare Now</button>
     <button id="resetCompareBtn" class="action-btn" style="display:none;">Show All Predictions</button>
-
   </div>
+  
 
   <!-- 🔽 Prediction Table -->
   <div class="table-scroll" id="predictionWrapper">
@@ -292,6 +292,11 @@
       <button class="action-btn" onclick="showMainView()">Take me back to main page</button>
     </div>
   </div>
+
+  <!-- 🔁 Floating Compare Button -->
+<button id="floatingCompareBtn" class="action-btn floating-compare-btn" style="display: none;">
+  ✅ Compare Now
+</button>
 
   <!-- Script References -->
   <script src="user_prediction_script.js"></script>

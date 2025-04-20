@@ -308,6 +308,7 @@
     document.getElementById("allPredictionsContainer").style.display = "none";
     document.getElementById("tab-expert").classList.add("active");
     document.getElementById("tab-all").classList.remove("active");
+    selectedNamesToCompare = []; // 🧼 Clear any selected buddies
     displayLeaderboard();
     
   }
@@ -498,10 +499,11 @@ compareBtn.addEventListener("click", () => {
   const alreadySelected = selectedNamesToCompare.includes(name);
 
   if (!alreadySelected) {
-    if (selectedNamesToCompare.length >= 4) {
-      alert("You can only compare up to 4 users.");
+    if (selectedNamesToCompare.length >= 8) {
+      alert("You can only compare up to 8 users.");
       return;
     }
+
     selectedNamesToCompare.push(name);
     compareBtn.classList.add("selected-buddy");
   } else {
@@ -509,13 +511,14 @@ compareBtn.addEventListener("click", () => {
     compareBtn.classList.remove("selected-buddy");
   }
 
-  if (selectedNamesToCompare.length === 2) {
-    console.log("🎯 Queued compare for:", selectedNamesToCompare);
-    skipAutoScroll = true;
-    pendingCompareNames = [...selectedNamesToCompare];
-    showAllPredictionsTab();
+  // ✅ Show or hide floating compare button based on selection count
+  const floatingBtn = document.getElementById("floatingCompareBtn");
+  if (floatingBtn) {
+    floatingBtn.style.display = selectedNamesToCompare.length >= 2 ? "block" : "none";
   }
 });
+
+
 
 // Add both to wrapper
 wrapper.appendChild(nameSpan);
@@ -601,6 +604,22 @@ nameCell.appendChild(wrapper);
 
     
     
+}
+
+const floatingBtn = document.getElementById("floatingCompareBtn");
+if (floatingBtn) {
+  floatingBtn.addEventListener("click", () => {
+    if (selectedNamesToCompare.length < 2) {
+      alert("Please select at least 2 users to compare.");
+      return;
+    }
+
+    console.log("🔥 Compare Now clicked:", selectedNamesToCompare);
+    skipAutoScroll = true;
+    pendingCompareNames = [...selectedNamesToCompare];
+    showAllPredictionsTab();
+    floatingBtn.style.display = "none";
+  });
 }
 
   
