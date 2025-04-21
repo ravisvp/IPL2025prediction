@@ -313,20 +313,44 @@
     
   }
 
-  function showAllPredictionsTab(){
+  function showAllPredictionsTab() {
+    console.log("📢 showAllPredictionsTab() triggered");
+    console.log("🔍 pendingCompareNames:", pendingCompareNames);
+  
+    // 🧹 Reset compare mode if triggered from main view
+    if (!pendingCompareNames) {
+      selectedNamesToCompare = [];
+    }
+  
+    const compareChips = document.getElementById("nameChipsContainer");
+    if (compareChips) compareChips.innerHTML = "";
+  
+    const compareBtn = document.getElementById("compareButton");
+    if (compareBtn) compareBtn.disabled = true;
+  
+    const resetBtn = document.getElementById("resetCompareBtn");
+    if (resetBtn) resetBtn.style.display = "none";
+  
     document.getElementById("scoreboardContainer").style.display = "none";
     document.getElementById("allPredictionsContainer").style.display = "block";
     document.getElementById("tab-all").classList.add("active");
     document.getElementById("tab-expert").classList.remove("active");
-
-    if (pendingCompareNames && pendingCompareNames.length >= 2) {
-      console.log("✅ Showing filtered compare table for:", pendingCompareNames);
-      showComparedPredictions(window.allPredictionsRaw, pendingCompareNames);
-      pendingCompareNames = null;
-    } else {
-    displayPredictions();
-    }
   
+    // ✅ Always call displayPredictions with callback
+    
+    setTimeout(() => {
+      if (pendingCompareNames && pendingCompareNames.length >= 2) {
+        const namesToCompare = [...pendingCompareNames]; // copy before nulling
+        pendingCompareNames = null;
+    
+        console.log("✅ Showing filtered compare table for:", namesToCompare);
+        showComparedPredictions(window.allPredictionsRaw, namesToCompare);
+      } else {
+        displayPredictions();
+      }
+    }, 100);
+    
+    
     // ✅ Only scroll if not triggered by Buddy Compare
     if (!skipAutoScroll) {
       setTimeout(() => {
@@ -609,8 +633,8 @@ nameCell.appendChild(wrapper);
 const floatingBtn = document.getElementById("floatingCompareBtn");
 if (floatingBtn) {
   floatingBtn.addEventListener("click", () => {
-    if (selectedNamesToCompare.length < 2) {
-      alert("Please select at least 2 users to compare.");
+    if (!Array.isArray(selectedNamesToCompare) || selectedNamesToCompare.length < 2) {
+      console.warn("❌ Floating compare skipped: not enough users selected");
       return;
     }
 
@@ -1122,7 +1146,11 @@ if (floatingBtn) {
       });
   }
   
-  function displayPredictions() {
+  function displayPredictions(callback) {
+
+    console.log("📥 displayPredictions() called");
+
+
     const tableBody = document.getElementById("predictionTable").getElementsByTagName("tbody")[0];
     tableBody.innerHTML = "";
   
@@ -1130,7 +1158,9 @@ if (floatingBtn) {
       .then(response => response.json())
       .then(actualData => {
         window.actualResults = actualData?.actualResults || [];
-        window.allPredictionsRaw = [];  // Initialize here
+        
+
+
         const gamesCompleted = window.actualResults.length;
   
         
@@ -1200,23 +1230,42 @@ if (floatingBtn) {
           row.insertCell(-1).innerText = "";
           row.insertCell(-1).innerText = "";
         }
-  
         fetch("/get_predictions")
-          .then(response => {
-            if (!response.ok) throw new Error("Server response not ok");
-            return response.json();
-          })
-          .then(predictions => {
-            console.log("Detailed predictions count:", predictions.length);
+        .then(response => {
+          if (!response.ok) throw new Error("Server response not ok");
+          return response.json();
+        })
+        .then(predictions => {
+          console.log("Detailed predictions count:", predictions.length);
+      
+          window.allPredictionsRaw = predictions;
 
-            window.allPredictionsRaw = predictions; // ✅ Make available to header
-
+          if (window._delayedCompareNames) {
+            pendingCompareNames = [...window._delayedCompareNames];
+            console.log("🎯 Transferred delayed names to pendingCompareNames:", pendingCompareNames);
+            window._delayedCompareNames = null; // clear it
+          }
+          
+      
+          generateDetailedPredictionTableHeader(predictions); // ✅ always generate header
+          setTimeout(() => {
+            console.log("⏳ Setting up compare chips after delay...");
+            setupCompareChips(predictions);
             if (pendingCompareNames && pendingCompareNames.length >= 2) {
-              console.log("✅ Showing filtered compare table for:", pendingCompareNames);
-              showComparedPredictions(window.allPredictionsRaw, pendingCompareNames);
+              console.log("✅ Showing filtered compare table for (after chip setup):", pendingCompareNames);
+              showComparedPredictions(predictions, pendingCompareNames);
               pendingCompareNames = null;
             }
-            generateDetailedPredictionTableHeader(predictions);
+          
+          }, 300);
+                             // ✅ always setup chips
+      
+          
+          // continue rendering all predictions (as fallback/default)
+        
+      
+        
+            
 
   
             if (!Array.isArray(predictions) || predictions.length === 0) {
@@ -1291,7 +1340,70 @@ if (floatingBtn) {
               colorizeTable();
   
               // ✅ Setup compare chips for selection
-              setupCompareChips(predictions);
+              // ⏳ Wait for chips container to exist before setting up chips
+const waitForChips = setInterval(() => {
+  const chipContainer = document.getElementById("nameChipsContainer");
+  const compareBtn = document.getElementById("compareButton");
+  if (chipContainer && compareBtn) {
+    clearInterval(waitForChips);
+    // ✅ Wait until compareSelector becomes visible before initializing chips
+
+    console.log("🧪 Checking if compare chips can be setup...");
+
+    const chipContainer = document.getElementById("nameChipsContainer");
+    const compareBtn = document.getElementById("compareButton");
+    if (chipContainer && compareBtn && chipContainer.offsetParent !== null) {
+      console.log("✅ Setting up compare chips immediately");
+      setupCompareChips(predictions);
+    
+      if (pendingCompareNames && pendingCompareNames.length >= 2) {
+        console.log("✅ Showing filtered compare table for:", pendingCompareNames);
+        showComparedPredictions(predictions, pendingCompareNames);
+        pendingCompareNames = null;
+        return; // ✅ Prevent fallback to full table
+      }
+    }
+    
+     else {
+      console.log("⏳ Delayed setup via observer (compareSelector not visible yet");
+      const observer = new MutationObserver(() => {
+        const chipContainer = document.getElementById("nameChipsContainer");
+        const compareBtn = document.getElementById("compareButton");
+        if (chipContainer && compareBtn && chipContainer.offsetParent !== null) {
+          console.log("✅ Setting up compare chips after observer trigger");
+          setupCompareChips(predictions);
+          observer.disconnect();
+        }
+      });
+    
+      const compareSelector = document.getElementById("compareSelector");
+      if (compareSelector) {
+        console.log("📡 Observing compareSelector for changes...");
+        observer.observe(compareSelector, {
+          childList: true,
+          subtree: true
+        });
+      }
+      else {
+        console.warn("❌ compareSelector not found!");
+      }
+    }
+    
+const compareSelector = document.getElementById("compareSelector");
+if (compareSelector) {
+  observer.observe(compareSelector, {
+    childList: true,
+    subtree: true
+  });
+}
+
+  }
+}, 100); // check every 100ms (safe and snappy)
+
+              if (typeof callback === "function") {
+                callback();
+              }
+              
   
               // ✅ Auto-scroll to ongoing game column
              // ✅ Auto-scroll to ongoing game column (fix)
@@ -1331,10 +1443,12 @@ skipAutoScroll = false;  // ✅ reset regardless
  
 
   window.showComparedPredictions = function(allPredictions, selectedNames) {
-  if (selectedNames.length < 2) {
-    alert("Please select at least 2 users to compare.");
-    return;
-  }
+    if (!Array.isArray(selectedNames)) {
+      console.warn("Invalid input to showComparedPredictions");
+      return;
+    }
+    
+  
 
   const tableBody = document.querySelector("#predictionTable tbody");
   tableBody.innerHTML = "";
@@ -2084,7 +2198,10 @@ if (buddyBtn) {
         compareBox.scrollIntoView({ behavior: "smooth", block: "start" });
         console.log("👥 Scrolled to Compare Selector");
         skipAutoScroll = false; // ✅ Reset after scroll
-        observer.disconnect();
+        if (typeof observer !== "undefined") {
+          observer.disconnect();
+        }
+        
       }
     });
 
@@ -2103,12 +2220,21 @@ if (buddyBtn) {
 
     
  
-
-
-
 function setupCompareChips(predictions) {
+  console.log("🔧 setupCompareChips called with", predictions.length, "entries");
+
   const container = document.getElementById("nameChipsContainer");
-  const compareBtn = document.getElementById("compareButton");
+  const floatingCompareBtn = document.getElementById("floatingCompareBtn"); // leaderboard circle button
+  const inlineCompareBtn = document.getElementById("compareNowBtn");        // "Compare Now" inside chip container
+  const resetBtn = document.getElementById("resetCompareBtn");
+
+  // 🚨 Validate DOM targets
+  if (!container || !floatingCompareBtn || !inlineCompareBtn || !resetBtn) {
+    console.warn("⚠️ Compare chips setup skipped: required elements not found.");
+    return;
+  }
+
+  // 🧹 Reset container and compare list
   container.innerHTML = "";
   selectedNamesToCompare = [];
 
@@ -2119,37 +2245,70 @@ function setupCompareChips(predictions) {
 
     chip.addEventListener("click", () => {
       const name = pred.name;
-      if (selectedNamesToCompare.includes(name)) {
+      const isSelected = selectedNamesToCompare.includes(name);
+
+      if (isSelected) {
         selectedNamesToCompare = selectedNamesToCompare.filter(n => n !== name);
         chip.classList.remove("selected");
       } else {
-        if (selectedNamesToCompare.length < 4) {
-          selectedNamesToCompare.push(name);
-          chip.classList.add("selected");
-        } else {
-          alert("You can only compare up to 4 users.");
+        if (selectedNamesToCompare.length >= 8) {
+          alert("You can only compare up to 8 users.");
+          return;
         }
+        selectedNamesToCompare.push(name);
+        chip.classList.add("selected");
       }
 
-      compareBtn.disabled = selectedNamesToCompare.length < 2;
+      // 🔄 Update button states
+      const has2OrMore = selectedNamesToCompare.length >= 2;
+      const hasAny = selectedNamesToCompare.length > 0;
+
+      inlineCompareBtn.style.display = has2OrMore ? "inline-block" : "none";
+      resetBtn.style.display = hasAny ? "inline-block" : "none";
+      floatingCompareBtn.style.display = has2OrMore ? "block" : "none";
+
+      console.log("👥 Selected for comparison:", selectedNamesToCompare);
     });
 
     container.appendChild(chip);
   });
 
-  compareBtn.onclick = () => showComparedPredictions(predictions, selectedNamesToCompare);
+  // ✅ Floating "Compare" button (in leaderboard)
+  floatingCompareBtn.onclick = () => {
+    if (selectedNamesToCompare.length >= 2) {
+      console.log("🔥 Floating Compare clicked with:", selectedNamesToCompare);
+      pendingCompareNames = [...selectedNamesToCompare];
+      skipAutoScroll = true;
+      showAllPredictionsTab();
+    } else {
+      console.warn("Please select at least 2 users to compare.");
+    }
+  };
 
-  document.getElementById("resetCompareBtn").onclick = () => {
-    // Clear chips and button
-    selectedNamesToCompare = [];
-    document.querySelectorAll(".name-chip").forEach(chip => chip.classList.remove("selected"));
-    document.getElementById("resetCompareBtn").style.display = "none";
+  // ✅ Inline "Compare Now" button (below chips)
+  inlineCompareBtn.onclick = () => {
+    if (selectedNamesToCompare.length >= 2) {
+      console.log("🔥 Chip Compare clicked with:", selectedNamesToCompare);
+      skipAutoScroll = true;
   
-    // 🔁 Re-render full predictions table
-    displayPredictions();
+      // 🧠 DEFER the pendingCompareNames assignment until displayPredictions
+      window._delayedCompareNames = [...selectedNamesToCompare]; // temp variable
+      showAllPredictionsTab();
+    } else {
+      alert("Please select at least 2 users to compare.");
+    }
   };
   
-  
+
+  // ✅ Reset button (clears chips and shows full table again)
+  resetBtn.onclick = () => {
+    selectedNamesToCompare = [];
+    document.querySelectorAll(".name-chip").forEach(chip => chip.classList.remove("selected"));
+    resetBtn.style.display = "none";
+    floatingCompareBtn.style.display = "none";
+    inlineCompareBtn.style.display = "none";
+    displayPredictions(); // 🔄 Show full predictions table again
+  };
 }
 
 

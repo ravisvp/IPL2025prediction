@@ -54,25 +54,50 @@
       <button id="tab-all" class="tab" onclick="showAllPredictionsTab()">View Predictions</button>
     </div>
 -->
-    <!-- Statistics Section -->
-    <div id="statisticsContainer" class="table-scroll">
-      <h2 class="statistics-title">Prediction Statistics</h2>
+    
+    
+    <div id="streakStats" class="scoreboard-streaks"></div>
 
+    <!-- Expert Leaderboard -->
+    
+<!-- Upcoming Game Predictions Table -->
+<div id="upcomingGamePredictionsContainer" class="table-scroll" style="margin-bottom: 20px;">
+  <div class="prediction-title-wrapper">
+    <div class="upcoming-heading-wrapper">
+      <h2 id="upcomingGameHeading" class="violet-heading">Upcoming Game Predictions</h2>
+      <div id="upcomingPredictionSummary" class="prediction-summary"></div>
+    </div>
+    
+  </div>
+  
 
+  <div class="scrollable-table-wrapper"></div>
+  <div id="upcomingPredictionTableContainer"></div>
+</div>
 
-      <div class="chart-container">
-        <div class="chart-header violet-header">Winner Predictions</div>
-        <canvas id="winnerChart"></canvas>
+<div id="podiumContainer" class="podium-wrapper"></div>
+
+<div id="scoreboardContainer" class="scoreboard-container">
+      <div class="scoreboard-header">
+        <div class="scoreboard-title">EXPERT RANKINGS</div>
+        <div class="scoreboard-subtitle">IN IPL 2025</div>
       </div>
 
-      <div class="chart-container">
-        <div class="chart-header violet-header">Purple Cap Predictions</div>
-        <canvas id="purpleCapChart"></canvas>
-      </div>
+    
 
-      <div class="chart-container">
-        <div class="chart-header violet-header">Orange Cap Predictions</div>
-        <canvas id="orangeCapChart"></canvas>
+      <div class="table-scroll">
+        <table id="leaderboardTable" class="scoreboard-table">
+          <thead>
+            <tr>
+              <th>Name (Rank)</th>
+              <th>Total Points</th>
+              <th>Hits</th>
+              <th>Misses</th>
+              <th># Games</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
@@ -102,51 +127,31 @@
       </div>
     </div>
 
-    <div id="streakStats" class="scoreboard-streaks"></div>
 
-    <!-- Expert Leaderboard -->
-    
-<!-- Upcoming Game Predictions Table -->
-<div id="upcomingGamePredictionsContainer" class="table-scroll" style="margin-bottom: 20px;">
-  <div class="prediction-title-wrapper">
-    <div class="upcoming-heading-wrapper">
-      <h2 id="upcomingGameHeading" class="violet-heading">Upcoming Game Predictions</h2>
-      <div id="upcomingPredictionSummary" class="prediction-summary"></div>
-    </div>
-    
-  </div>
+      <!-- Statistics Section -->
+      <div id="statisticsContainer" class="table-scroll">
+        <h2 class="statistics-title">Prediction Statistics</h2>
   
-
-  <div class="scrollable-table-wrapper"></div>
-  <div id="upcomingPredictionTableContainer"></div>
-</div>
-
-<div id="podiumContainer" class="podium-wrapper"></div>
-<div id="scoreboardContainer" class="scoreboard-container">
-      <div class="scoreboard-header">
-        <div class="scoreboard-title">EXPERT RANKINGS</div>
-        <div class="scoreboard-subtitle">IN IPL 2025</div>
+  
+  
+        <div class="chart-container">
+          <div class="chart-header violet-header">Winner Predictions</div>
+          <canvas id="winnerChart"></canvas>
+        </div>
+  
+        <div class="chart-container">
+          <div class="chart-header violet-header">Purple Cap Predictions</div>
+          <canvas id="purpleCapChart"></canvas>
+        </div>
+  
+        <div class="chart-container">
+          <div class="chart-header violet-header">Orange Cap Predictions</div>
+          <canvas id="orangeCapChart"></canvas>
+        </div>
       </div>
-      
-      
-
-      <div class="table-scroll">
-        <table id="leaderboardTable" class="scoreboard-table">
-          <thead>
-            <tr>
-              <th>Name (Rank)</th>
-              <th>Total Points</th>
-              <th>Hits</th>
-              <th>Misses</th>
-              <th># Games</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-   
+  
+        
+        
    
     
    <!-- All Predictions Section (hidden by default) -->
@@ -157,7 +162,9 @@
   <div id="compareSelector" class="compare-selector">
     <div class="compare-instructions">Click up to 4 names to compare:</div>
     <div id="nameChipsContainer" class="chip-container"></div>
+    <!-- Fix this line -->
     <button id="compareNowBtn" class="action-btn" style="display: none;">Compare Now</button>
+
     <button id="resetCompareBtn" class="action-btn" style="display:none;">Show All Predictions</button>
   </div>
   
