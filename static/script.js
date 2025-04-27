@@ -310,6 +310,12 @@
     document.getElementById("tab-all").classList.remove("active");
     selectedNamesToCompare = []; // 🧼 Clear any selected buddies
     displayLeaderboard();
+
+      // ✅ Scroll to the newly positioned Expert Rankings section
+  const scoreboardSection = document.getElementById("scoreboardContainer");
+  if (scoreboardSection) {
+    scoreboardSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
     
   }
 

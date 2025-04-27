@@ -228,10 +228,26 @@ def submit_results():
             user_game_preds = []
 
         # League Hits / Misses based on the number of actual results provided
+            # League Hits / Misses based on the number of actual results provided
         hits_league = 0
         for i in range(total_games_entered):
-            if i < len(user_game_preds) and user_game_preds[i].upper() == actual_results[i]:
-                hits_league += 1
+           if i < len(user_game_preds):
+               user_pick = user_game_preds[i].upper()
+               actual = actual_results[i]
+        
+               if actual == "WASHOUT":
+            # Award 1 point to everyone if the match was washed out
+                   hits_league += 1
+               elif user_pick == actual:
+                   hits_league += 1
+
+
+
+
+
+
+
+       
 
         # Evaluate playoff predictions
         try:
