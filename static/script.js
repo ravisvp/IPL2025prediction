@@ -406,7 +406,8 @@ function displayLeaderboard() {
     fetch("/actual_results").then(r => r.json())
   ])
     .then(([predictions, actualData]) => {
-      const gamesCompleted = actualData?.actualResults?.length || 0;
+      const gamesCompleted = (actualData?.actualResults || []).filter(r => r && r.trim() !== "").length;
+
       let topHitStreak = { name: "", streak: 0 };
       let topMissStreak = { name: "", streak: 0 };
 
