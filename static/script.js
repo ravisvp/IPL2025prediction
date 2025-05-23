@@ -1621,110 +1621,135 @@ skipAutoScroll = false;  // ✅ reset regardless
       }
     }
   }
-  function displayFinalsPredictions() {
-    const finalsTable = document.getElementById("finalsPredictionTable");
-    let tableBody = finalsTable.getElementsByTagName("tbody")[0];
-    
-    if (!tableBody) {
-      tableBody = document.createElement("tbody");
-      finalsTable.appendChild(tableBody);
-    }
-  
-    tableBody.innerHTML = "";
-  
-    fetch("/get_predictions")
-      .then(response => {
-        if (!response.ok) throw new Error("Server response not ok");
-        return response.json();
-      })
-      .then(predictions => {
-        console.log("Finals predictions count:", predictions.length);
-  
-        if (!Array.isArray(predictions) || predictions.length === 0) {
-          tableBody.innerHTML = "<tr><td colspan='10'>No playoffs predictions available</td></tr>";
-          return;
-        }
-  
-        predictions.forEach((prediction, idx) => {
-          const row = document.createElement("tr");
-  
-          // Add numbering and user name
-          const number = idx + 1;
-          const displayName = prediction.name || "User";
-          const nameCell = document.createElement("td");
-          nameCell.innerText = `${number}. ${displayName}`;
-          nameCell.style.backgroundColor = nameCellBgColor;
-          nameCell.style.color = nameCellTextColor;
-          nameCell.style.fontWeight = "bold";
-          nameCell.style.whiteSpace = "nowrap";
-          row.appendChild(nameCell);
-  
-          // Semifinalists (Rank 1-4)
-          let ranks = [];
-          if (prediction.semifinalists) {
-            ranks = (typeof prediction.semifinalists === "string") ? JSON.parse(prediction.semifinalists) : prediction.semifinalists;
-          }
-          for (let i = 0; i < 4; i++) {
-            const cell = document.createElement("td");
-            cell.innerText = ranks[i] || "";
-            cell.style.fontWeight = "bold";
-            if (cell.innerText.trim()) {
-              cell.style.backgroundColor = teamColors[cell.innerText.trim()] || "#2f2f2f";
-              cell.style.color = "#fff";
-            }
-            row.appendChild(cell);
-          }
-  
-          // Finalists (2 teams)
-          let finals = [];
-          if (prediction.finalists) {
-            finals = (typeof prediction.finalists === "string") ? JSON.parse(prediction.finalists) : prediction.finalists;
-          }
-          for (let i = 0; i < 2; i++) {
-            const cell = document.createElement("td");
-            cell.innerText = finals[i] || "";
-            cell.style.fontWeight = "bold";
-            if (cell.innerText.trim()) {
-              cell.style.backgroundColor = teamColors[cell.innerText.trim()] || "#2f2f2f";
-              cell.style.color = "#fff";
-            }
-            row.appendChild(cell);
-          }
-  
-          // Winner
-          const winnerCell = document.createElement("td");
-          winnerCell.innerText = prediction.winner || "";
-          winnerCell.style.fontWeight = "bold";
-          if (winnerCell.innerText.trim()) {
-            winnerCell.style.backgroundColor = teamColors[winnerCell.innerText.trim()] || "#2f2f2f";
-            winnerCell.style.color = "#fff";
-          }
-          row.appendChild(winnerCell);
-  
-          // Purple Cap
-          const purpleCapCell = document.createElement("td");
-          purpleCapCell.innerText = prediction.purple_cap || "";
-          purpleCapCell.style.fontWeight = "bold";
-          purpleCapCell.style.backgroundColor = "#90EE90";
-          purpleCapCell.style.color = "#000";
-          row.appendChild(purpleCapCell);
-  
-          // Orange Cap
-          const orangeCapCell = document.createElement("td");
-          orangeCapCell.innerText = prediction.orange_cap || "";
-          orangeCapCell.style.fontWeight = "bold";
-          orangeCapCell.style.backgroundColor = "#FFA500";
-          orangeCapCell.style.color = "#000";
-          row.appendChild(orangeCapCell);
-  
-          tableBody.appendChild(row);
-        });
-      })
-      .catch(error => {
-        console.error("Error fetching playoffs predictions:", error);
-        tableBody.innerHTML = "<tr><td colspan='10'>Error loading playoffs predictions</td></tr>";
-      });
+function displayFinalsPredictions() {
+  const finalsTable = document.getElementById("finalsPredictionTable");
+  let tableBody = finalsTable.getElementsByTagName("tbody")[0];
+
+  if (!tableBody) {
+    tableBody = document.createElement("tbody");
+    finalsTable.appendChild(tableBody);
   }
+
+  tableBody.innerHTML = "";
+
+  fetch("/get_predictions")
+    .then(response => {
+      if (!response.ok) throw new Error("Server response not ok");
+      return response.json();
+    })
+    .then(predictions => {
+      console.log("Finals predictions count:", predictions.length);
+
+      if (!Array.isArray(predictions) || predictions.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='10'>No playoffs predictions available</td></tr>";
+        return;
+      }
+
+      const actualSemifinalists = ["RCB", "MI", "PBKS", "GT"]; // ✅ Set this as the known 4 teams
+
+      predictions.forEach((prediction, idx) => {
+        const row = document.createElement("tr");
+
+        // Add numbering and user name
+        const number = idx + 1;
+        const displayName = prediction.name || "User";
+        const nameCell = document.createElement("td");
+        nameCell.innerText = `${number}. ${displayName}`;
+        nameCell.style.backgroundColor = nameCellBgColor;
+        nameCell.style.color = nameCellTextColor;
+        nameCell.style.fontWeight = "bold";
+        nameCell.style.whiteSpace = "nowrap";
+        row.appendChild(nameCell);
+
+        // Semifinalists (Rank 1-4)
+        let ranks = [];
+        if (prediction.semifinalists) {
+          ranks = (typeof prediction.semifinalists === "string") ? JSON.parse(prediction.semifinalists) : prediction.semifinalists;
+        }
+
+        for (let i = 0; i < 4; i++) {
+          const cell = document.createElement("td");
+          const team = (ranks[i] || "").toUpperCase();
+          cell.innerText = team;
+          cell.style.fontWeight = "bold";
+
+          if (team) {
+            cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+            cell.style.color = "#fff";
+
+            // ✅ Apply green or red border depending on correctness
+            if (actualSemifinalists.includes(team)) {
+  cell.style.border = "4px solid #00FF00"; // Bright lime green
+  cell.style.boxShadow = "0 0 6px 2px #00FF00"; // Add glow effect
+} else {
+  cell.style.border = "4px solid #FF4500"; // Bright red-orange
+  cell.style.boxShadow = "0 0 6px 2px #FF4500"; // Add glow effect
+}
+
+            cell.style.borderRadius = "4px";
+          }
+
+          row.appendChild(cell);
+        }
+
+        // Finalists (2 teams)
+        let finals = [];
+        if (prediction.finalists) {
+          finals = (typeof prediction.finalists === "string") ? JSON.parse(prediction.finalists) : prediction.finalists;
+        }
+
+        for (let i = 0; i < 2; i++) {
+          const cell = document.createElement("td");
+          const team = (finals[i] || "").toUpperCase();
+          cell.innerText = team;
+          cell.style.fontWeight = "bold";
+
+          if (team) {
+            cell.style.backgroundColor = teamColors[team] || "#2f2f2f";
+            cell.style.color = "#fff";
+          }
+
+          row.appendChild(cell);
+        }
+
+        // Winner
+        const winnerCell = document.createElement("td");
+        const winner = (prediction.winner || "").toUpperCase();
+        winnerCell.innerText = winner;
+        winnerCell.style.fontWeight = "bold";
+
+        if (winner) {
+          winnerCell.style.backgroundColor = teamColors[winner] || "#2f2f2f";
+          winnerCell.style.color = "#fff";
+        }
+
+        row.appendChild(winnerCell);
+
+        // Purple Cap
+        const purpleCapCell = document.createElement("td");
+        purpleCapCell.innerText = prediction.purple_cap || "";
+        purpleCapCell.style.fontWeight = "bold";
+        purpleCapCell.style.backgroundColor = "#90EE90";
+        purpleCapCell.style.color = "#000";
+        row.appendChild(purpleCapCell);
+
+        // Orange Cap
+        const orangeCapCell = document.createElement("td");
+        orangeCapCell.innerText = prediction.orange_cap || "";
+        orangeCapCell.style.fontWeight = "bold";
+        orangeCapCell.style.backgroundColor = "#FFA500";
+        orangeCapCell.style.color = "#000";
+        row.appendChild(orangeCapCell);
+
+        tableBody.appendChild(row);
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching playoffs predictions:", error);
+      tableBody.innerHTML = "<tr><td colspan='10'>Error loading playoffs predictions</td></tr>";
+    });
+}
+
   
   function displayHeatmap() {
     const container = document.getElementById("heatmapContainer");
