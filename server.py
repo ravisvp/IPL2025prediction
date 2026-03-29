@@ -151,6 +151,15 @@ def clear_predictions():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+@app.route("/clear_comments", methods=["DELETE"])
+def clear_comments():
+    try:
+        count = Comment.query.delete()
+        db.session.commit()
+        return jsonify({"message": f"Deleted {count} comments."}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 @app.route("/submit_results", methods=["POST"])
 def submit_results():
     global actual_results_data
