@@ -1878,7 +1878,7 @@ if (heatmapBtn) {
 
   });
   
-  function generateDetailedPredictionTableHeader(predictions) {
+  function generateDetailedPredictionTableHeader(predictions = []) {
     const header = document.getElementById("predictionTableHeader");
     header.innerHTML = "";
     const row = document.createElement("tr");
