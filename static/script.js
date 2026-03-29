@@ -1874,7 +1874,7 @@ if (heatmapBtn) {
       });
     displayFinalsPredictions();
     displayStatistics();
-    generateDetailedPredictionTableHeader(predictions);
+    generateDetailedPredictionTableHeader();
 
   });
   
