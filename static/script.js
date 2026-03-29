@@ -1895,13 +1895,16 @@ function displayFinalsPredictions() {
   
   // ----- Attach Event Listeners and Expose Functions -----
   window.addEventListener("load", function(){
-    const enterBtn = document.getElementById("enterPredictionBtn");
-    if (enterBtn) {
-      enterBtn.onclick = showPredictionForm;
-      console.log("Enter Predictions button assigned");
-    } else {
-      console.error("Enter Predictions button not found.");
-    }
+    const enterBtn =
+  document.getElementById("heroEnterPredictionBtn") ||
+  document.getElementById("enterPredictionBtn");
+
+if (enterBtn) {
+  enterBtn.onclick = showPredictionForm;
+  console.log("Enter Predictions button assigned");
+} else {
+  console.error("Enter Predictions button not found.");
+}
     const heatmapBtn = document.getElementById("heatmapBtn");
 if (heatmapBtn) {
   console.log("🔥 Heatmap Button Found!");

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL 2025 Archive</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .archive-page {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.55);
+            border-radius: 18px;
+            color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .archive-page h1 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 2px 2px 8px black;
+        }
+
+        .archive-page h2 {
+            text-align: center;
+            margin-top: 35px;
+            margin-bottom: 18px;
+            font-size: 34px;
+            color: #ffd700;
+            text-shadow: 1px 1px 6px black;
+        }
+
+        .archive-note {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 25px;
+            opacity: 0.95;
+        }
+
+        .archive-section {
+            margin-top: 40px;
+        }
+
+        .archive-table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        .archive-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.95);
+            color: black;
+            border-radius: 16px;
+            overflow: hidden;
+            font-size: 17px;
+        }
+
+        .archive-table th {
+            background: linear-gradient(90deg, #5c0aa3, #7b1fa2);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .archive-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #d9d9d9;
+            font-weight: 500;
+        }
+
+        .archive-table tbody tr:nth-child(odd) {
+            background: linear-gradient(90deg, rgba(248, 240, 255, 0.96), rgba(235, 220, 255, 0.96));
+        }
+
+        .archive-table tbody tr:nth-child(even) {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.96), rgba(245, 245, 255, 0.96));
+        }
+
+        .archive-table tbody tr:nth-child(1) {
+            background: linear-gradient(90deg, #fff7c2, #ffe082) !important;
+            font-weight: bold;
+        }
+
+        .archive-table tbody tr:nth-child(2) {
+            background: linear-gradient(90deg, #eceff1, #d7dce0) !important;
+            font-weight: bold;
+        }
+
+        .archive-table tbody tr:nth-child(3) {
+            background: linear-gradient(90deg, #f6d2a2, #e8b97a) !important;
+            font-weight: bold;
+        }
+
+        .archive-table tbody tr:hover {
+            background: linear-gradient(90deg, #ffe082, #ffd54f) !important;
+            transform: scale(1.005);
+            transition: all 0.2s ease;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            background: linear-gradient(90deg, #5c0aa3, #7b1fa2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .back-link:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="archive-page">
+        <a class="back-link" href="/">← Back to Live App</a>
+
+        <h1>🏏 IPL 2025 Archive</h1>
+        <p class="archive-note">Read-only archive of the 2025 season</p>
+
+        <div class="archive-section">
+            <h2>Final Leaderboard</h2>
+            <div class="archive-table-wrapper">
+                <table class="archive-table" id="leaderboardTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Total Points</th>
+                            <th>Hits</th>
+                            <th>Misses</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <h2>Finals Prediction Table</h2>
+            <div class="archive-table-wrapper">
+                <table class="archive-table" id="finalsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Semifinalists</th>
+                            <th>Finalists</th>
+                            <th>Winner</th>
+                            <th>Orange Cap</th>
+                            <th>Purple Cap</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="archive_2025.js"></script>
+</body>
+</html>
